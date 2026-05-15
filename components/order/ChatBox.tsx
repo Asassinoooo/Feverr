@@ -1,22 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Message, User } from '@/lib/types';
+import { Message } from '@/lib/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
 
 interface ChatBoxProps {
-  messages: Message[];
-  users: User[];
+  messages: any[];
   currentUserId: string;
   onSend: (content: string) => void;
 }
 
-export function ChatBox({ messages, users, currentUserId, onSend }: ChatBoxProps) {
+export function ChatBox({ messages, currentUserId, onSend }: ChatBoxProps) {
   const [input, setInput] = useState('');
-
-  const getUserById = (id: string) => users.find((u) => u.id === id);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,17 +32,19 @@ export function ChatBox({ messages, users, currentUserId, onSend }: ChatBoxProps
           <p className="text-sm text-slate-400 text-center py-4">Belum ada pesan.</p>
         )}
         {messages.map((msg) => {
-          const sender = getUserById(msg.senderId);
           const isMe = msg.senderId === currentUserId;
+          const senderName = msg.sender_name || (isMe ? 'Saya' : 'User');
+          const senderAvatar = msg.sender_avatar;
+
           return (
             <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
               <Avatar
-                src={sender?.avatarUrl}
-                name={sender?.name || 'User'}
+                src={senderAvatar}
+                name={senderName}
                 size={32}
               />
               <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                <span className="text-xs text-slate-400">{sender?.name}</span>
+                <span className="text-xs text-slate-400">{senderName}</span>
                 <div
                   className={`px-3 py-2 text-sm ${
                     isMe

@@ -22,14 +22,36 @@ export default function RegisterPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.username || !form.email || !form.password) {
       setError('Semua kolom wajib diisi.');
       return;
     }
-    // Mock: just redirect to login with a success message
-    router.push('/login?registered=1');
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mendaftar.');
+      }
+
+      router.push('/login?registered=1');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -111,8 +133,14 @@ export default function RegisterPage() {
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <Button type="submit" variant="primary" size="lg" className="w-full mt-2">
-            Buat Akun
+          <Button 
+            type="submit" 
+            variant="primary" 
+            size="lg" 
+            className="w-full mt-2"
+            disabled={loading}
+          >
+            {loading ? 'Memproses...' : 'Buat Akun'}
           </Button>
         </form>
       </div>

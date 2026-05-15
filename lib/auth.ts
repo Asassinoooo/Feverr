@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { mockUsers } from '@/lib/mock/users';
+import { query } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -13,16 +14,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = mockUsers.find(
-          (u) =>
-            u.email === credentials.email &&
-            u.passwordHash === credentials.password
+        const res = await query(
+          'SELECT * FROM users WHERE email = $1',
+          [credentials.email]
         );
+
+        const user = res.rows[0];
 
         if (!user) return null;
 
+        const isPasswordCorrect = await bcrypt.compare(
+          credentials.password as string,
+          user.password_hash
+        );
+
+        if (!isPasswordCorrect) return null;
+
         return {
-          id: user.id,
+          id: user.user_id.toString(),
           email: user.email,
           name: user.name,
           username: user.username,
@@ -55,4 +64,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: 'jwt',
   },
+  secret: process.env.AUTH_SECRET,
 });

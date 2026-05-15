@@ -1,10 +1,37 @@
 import Link from 'next/link';
-import { getFeaturedGigs, GIG_CATEGORIES } from '@/lib/mock/gigs';
-import { mockUsers } from '@/lib/mock/users';
+import { GIG_CATEGORIES } from '@/lib/mock/gigs';
 import { GigCard } from '@/components/gig/GigCard';
+import { query } from '@/lib/db';
 
-export default function HomePage() {
-  const featured = getFeaturedGigs();
+async function getFeaturedGigs() {
+  const res = await query(`
+    SELECT g.*, u.username, u.name as seller_name, u.avatar_url as seller_avatar
+    FROM gigs g
+    JOIN users u ON g.seller_id = u.user_id
+    WHERE g.is_active = true
+    ORDER BY g.average_rating DESC, g.review_count DESC
+    LIMIT 3
+  `);
+  
+  return res.rows.map(row => ({
+    ...row,
+    id: row.gig_id.toString(),
+    sellerId: row.seller_id.toString(),
+    portfolioImages: row.portfolio_images || [],
+    deliveryDays: row.delivery_days,
+    rating: parseFloat(row.average_rating) || 0,
+    reviewCount: parseInt(row.review_count) || 0,
+    seller: {
+      id: row.seller_id.toString(),
+      username: row.username,
+      name: row.seller_name,
+      avatarUrl: row.seller_avatar
+    }
+  }));
+}
+
+export default async function HomePage() {
+  const featured = await getFeaturedGigs();
 
   return (
     <div>
@@ -90,10 +117,9 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {featured.map((gig) => {
-            const seller = mockUsers.find((u) => u.id === gig.sellerId);
-            return <GigCard key={gig.id} gig={gig} seller={seller} />;
-          })}
+          {featured.map((gig) => (
+            <GigCard key={gig.id} gig={gig as any} seller={gig.seller as any} />
+          ))}
         </div>
       </section>
 

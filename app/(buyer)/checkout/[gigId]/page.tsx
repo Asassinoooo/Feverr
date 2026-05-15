@@ -1,78 +1,84 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useApp } from '@/lib/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
-import { Order, Transaction } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Input';
+import { fetchGig, fetchMe, createOrder } from '@/lib/api';
 
 export default function CheckoutPage({ params }: { params: Promise<{ gigId: string }> }) {
   const { gigId } = use(params);
   const { data: session } = useSession();
   const router = useRouter();
-  const { gigs, users, addOrder, addTransaction, updateUserBalance } = useApp();
 
-  const gig = gigs.find((g) => g.id === gigId);
-  const seller = users.find((u) => u.id === gig?.sellerId);
-  const userId = (session?.user as any)?.id;
-  const currentUser = users.find((u) => u.id === userId);
-  const balance = currentUser?.balance ?? 0;
-
+  const [gig, setGig] = useState<any>(null);
+  const [balance, setBalance] = useState(0);
   const [instructions, setInstructions] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
-  if (!gig) {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [gigData, userData] = await Promise.all([
+          fetchGig(gigId),
+          fetchMe()
+        ]);
+        setGig({
+          ...gigData,
+          id: gigData.gig_id.toString(),
+          sellerId: gigData.seller_id.toString(),
+          portfolioImages: gigData.portfolio_images || [],
+          deliveryDays: gigData.delivery_days
+        });
+        setBalance(Number(userData.balance));
+      } catch (err) {
+        console.error('Error loading checkout data:', err);
+        setError('Gagal memuat data checkout.');
+      } finally {
+        setPageLoading(false);
+      }
+    };
+    loadData();
+  }, [gigId]);
+
+  if (pageLoading) {
+    return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400">Memuat...</div>;
+  }
+
+  if (error || !gig) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center text-slate-400">
-        Gig tidak ditemukan.
+      <div className="max-w-md mx-auto px-4 py-16 text-center text-red-500">
+        {error || 'Gig tidak ditemukan.'}
       </div>
     );
   }
 
-  const canAfford = balance >= gig.price;
+  const canAfford = balance >= Number(gig.price);
 
-  function handleOrder(e: React.FormEvent) {
+  async function handleOrder(e: React.FormEvent) {
     e.preventDefault();
-    if (!canAfford || loading || !gig) return;
+    if (!canAfford || loading) return;
     setLoading(true);
+    setError('');
 
-    const orderId = `order-${Date.now()}`;
-    const now = new Date().toISOString();
-
-    const order: Order = {
-      id: orderId,
-      gigId: gig.id,
-      buyerId: userId,
-      sellerId: gig.sellerId,
-      status: 'pending',
-      buyerInstructions: instructions,
-      deliveryFiles: [],
-      totalPrice: gig.price,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const txn: Transaction = {
-      id: `txn-${Date.now()}`,
-      userId,
-      type: 'debit',
-      amount: gig.price,
-      description: `Pembayaran order: ${gig.title}`,
-      relatedOrderId: orderId,
-      createdAt: now,
-    };
-
-    addOrder(order);
-    addTransaction(txn);
-    updateUserBalance(userId, -gig.price);
-    setDone(true);
-
-    setTimeout(() => router.push('/dashboard/orders'), 1500);
+    try {
+      await createOrder({
+        gigId: gig.id,
+        buyerInstructions: instructions
+      });
+      setDone(true);
+      setTimeout(() => router.push('/dashboard/orders'), 1500);
+    } catch (err: any) {
+      setError(err.message || 'Gagal membuat pesanan.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (done) {
@@ -105,7 +111,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
             </div>
           )}
           <h3 className="text-sm font-medium text-slate-800 mb-1">{gig.title}</h3>
-          <p className="text-xs text-slate-400 mb-3">oleh {seller?.name}</p>
+          <p className="text-xs text-slate-400 mb-3">oleh {gig.seller_name}</p>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Total</span>
             <span className="font-bold text-slate-800">{formatCurrency(gig.price)}</span>
@@ -140,6 +146,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
               rows={5}
               required
             />
+
+            {error && <p className="text-sm text-red-500">{error}</p>}
 
             <Button
               type="submit"

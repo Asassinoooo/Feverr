@@ -1,17 +1,17 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useApp } from '@/lib/context/AppContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { OrderStatusBadge } from '@/components/order/OrderStatusBadge';
 import { ChatBox } from '@/components/order/ChatBox';
 import { StarRating } from '@/components/ui/StarRating';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Input';
-import { Message, Review, OrderStatus } from '@/lib/types';
+import { OrderStatus } from '@/lib/types';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { fetchOrder, fetchMessages, sendMessage as apiSendMessage, fetchReviews, createReview as apiCreateReview } from '@/lib/api';
 
 const STEPS: OrderStatus[] = ['pending', 'in_progress', 'delivered', 'completed'];
 
@@ -24,13 +24,10 @@ const navItems = [
 export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: session } = useSession();
-  const { orders, gigs, users, messages, reviews, addMessage, addReview, updateOrderStatus } = useApp();
-
-  const order = orders.find((o) => o.id === id);
-  const gig = gigs.find((g) => g.id === order?.gigId);
-  const seller = users.find((u) => u.id === order?.sellerId);
-  const orderMessages = messages.filter((m) => m.orderId === id);
-  const existingReview = reviews.find((r) => r.orderId === id);
+  const [order, setOrder] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [existingReview, setExistingReview] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const userId = (session?.user as any)?.id;
 
@@ -38,40 +35,76 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
-  if (!order) {
-    return <div className="p-8 text-slate-400 text-sm">Pesanan tidak ditemukan.</div>;
+  const loadData = async () => {
+    try {
+      const orderData = await fetchOrder(id);
+      setOrder({
+        ...orderData,
+        id: orderData.order_id.toString(),
+        totalPrice: parseFloat(orderData.total_price),
+        createdAt: orderData.created_at,
+        deliveryFiles: orderData.delivery_files || [],
+        buyerInstructions: orderData.buyer_instructions
+      });
+
+      const messagesData = await fetchMessages(id);
+      setMessages(messagesData.map((m: any) => ({
+        ...m,
+        id: m.message_id.toString(),
+        senderId: m.sender_id.toString(),
+        createdAt: m.created_at
+      })));
+
+      const reviewsData = await fetchReviews({ orderId: id });
+      if (reviewsData.length > 0) {
+        setExistingReview(reviewsData[0]);
+      }
+    } catch (error) {
+      console.error('Error loading order detail:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
+  async function handleSendMessage(content: string) {
+    try {
+      await apiSendMessage(id, content);
+      loadData();
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   }
+
+  async function handleSubmitReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (existingReview || reviewSubmitted || loading) return;
+    
+    setLoading(true);
+    try {
+      await apiCreateReview({
+        orderId: id,
+        gigId: order.gig_id,
+        sellerId: order.seller_id,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      setReviewSubmitted(true);
+      loadData();
+    } catch (err) {
+      console.error('Error submitting review:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading && !order) return <div className="p-8 text-slate-400">Memuat...</div>;
+  if (!order) return <div className="p-8 text-slate-400 text-sm">Pesanan tidak ditemukan.</div>;
 
   const currentStepIndex = STEPS.indexOf(order.status as OrderStatus);
-
-  function handleSendMessage(content: string) {
-    const msg: Message = {
-      id: `msg-${Date.now()}`,
-      orderId: id,
-      senderId: userId,
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    addMessage(msg);
-  }
-
-  function handleSubmitReview(e: React.FormEvent) {
-    e.preventDefault();
-    if (existingReview || reviewSubmitted) return;
-    const review: Review = {
-      id: `review-${Date.now()}`,
-      orderId: id,
-      gigId: order!.gigId,
-      buyerId: userId,
-      sellerId: order!.sellerId,
-      rating: reviewRating as 1 | 2 | 3 | 4 | 5,
-      comment: reviewComment,
-      createdAt: new Date().toISOString(),
-    };
-    addReview(review);
-    updateOrderStatus(id, 'completed');
-    setReviewSubmitted(true);
-  }
 
   return (
     <DashboardLayout title="Pembeli" navItems={navItems}>
@@ -117,8 +150,8 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
       <div className="bg-white border border-slate-200 p-5 mb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">{gig?.title}</h3>
-            <p className="text-xs text-slate-400 mt-1">oleh {seller?.name}</p>
+            <h3 className="text-sm font-semibold text-slate-800">{order.gig_title}</h3>
+            <p className="text-xs text-slate-400 mt-1">oleh {order.seller_name}</p>
             <p className="text-xs text-slate-400">Dipesan: {formatDate(order.createdAt)}</p>
           </div>
           <div className="text-right">
@@ -138,7 +171,7 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
       {order.status === 'delivered' && order.deliveryFiles.length > 0 && (
         <div className="bg-white border border-slate-200 p-5 mb-6">
           <h3 className="text-sm font-semibold text-slate-700 mb-3">File Dikirim</h3>
-          {order.deliveryFiles.map((f) => (
+          {order.deliveryFiles.map((f: string) => (
             <div key={f} className="flex items-center gap-2 py-2 border-b border-slate-100 last:border-b-0">
               <span className="text-slate-400">📎</span>
               <span className="text-sm text-slate-700 flex-1">{f}</span>
@@ -170,8 +203,8 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
               rows={3}
               required
             />
-            <Button type="submit" variant="primary" size="md">
-              Kirim Ulasan & Selesaikan
+            <Button type="submit" variant="primary" size="md" disabled={loading}>
+              {loading ? 'Memproses...' : 'Kirim Ulasan & Selesaikan'}
             </Button>
           </form>
         </div>
@@ -185,8 +218,7 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
 
       {/* Chat */}
       <ChatBox
-        messages={orderMessages}
-        users={users}
+        messages={messages}
         currentUserId={userId}
         onSend={handleSendMessage}
       />

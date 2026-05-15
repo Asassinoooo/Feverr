@@ -2,23 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { Gig } from '@/lib/types';
-import { useApp } from '@/lib/context/AppContext';
 import { GIG_CATEGORIES } from '@/lib/mock/gigs';
 import { Input, Textarea, Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { createGig, updateGig } from '@/lib/api';
 
 interface GigFormProps {
   existingGig?: Gig;
 }
 
 export function GigForm({ existingGig }: GigFormProps) {
-  const { data: session } = useSession();
-  const { addGig, updateGig } = useApp();
   const router = useRouter();
-  const userId = (session?.user as any)?.id;
-
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     title: existingGig?.title || '',
     category: existingGig?.category || GIG_CATEGORIES[0],
@@ -40,38 +36,49 @@ export function GigForm({ existingGig }: GigFormProps) {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || loading) return;
 
+    setLoading(true);
     const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
     const price = Number(form.price);
     const deliveryDays = Number(form.deliveryDays);
 
-    if (existingGig) {
-      updateGig(existingGig.id, { ...form, price, deliveryDays, tags });
-    } else {
-      const newGig: Gig = {
-        id: `gig-${Date.now()}`,
-        sellerId: userId,
-        title: form.title,
-        description: form.description,
-        category: form.category,
-        tags,
-        price,
-        deliveryDays,
-        portfolioImages: [
-          `https://picsum.photos/seed/${Date.now()}/800/500`,
-        ],
-        isActive: form.isActive,
-        rating: 0,
-        reviewCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      addGig(newGig);
+    try {
+      if (existingGig) {
+        await updateGig(existingGig.id, { 
+          title: form.title,
+          category: form.category,
+          description: form.description,
+          price, 
+          deliveryDays, 
+          tags,
+          isActive: form.isActive,
+          portfolioImages: existingGig.portfolioImages // Keep existing
+        });
+      } else {
+        await createGig({
+          title: form.title,
+          category: form.category,
+          description: form.description,
+          price,
+          deliveryDays,
+          tags,
+          isActive: form.isActive,
+          portfolioImages: [
+            `https://picsum.photos/seed/${Date.now()}/800/500`,
+          ]
+        });
+      }
+      router.push('/seller/gigs');
+      router.refresh();
+    } catch (err) {
+      console.error('Error saving gig:', err);
+      setErrors({ global: 'Gagal menyimpan gig.' });
+    } finally {
+      setLoading(false);
     }
-
-    router.push('/seller/gigs');
   }
 
   return (
@@ -141,11 +148,13 @@ export function GigForm({ existingGig }: GigFormProps) {
         </label>
       </div>
 
+      {errors.global && <p className="text-sm text-red-500">{errors.global}</p>}
+
       <div className="flex gap-3 pt-2">
-        <Button type="submit" variant="primary">
-          {existingGig ? 'Simpan Perubahan' : 'Buat Gig'}
+        <Button type="submit" variant="primary" disabled={loading}>
+          {loading ? 'Menyimpan...' : (existingGig ? 'Simpan Perubahan' : 'Buat Gig')}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => router.back()}>
+        <Button type="button" variant="secondary" onClick={() => router.back()} disabled={loading}>
           Batal
         </Button>
       </div>

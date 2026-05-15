@@ -1,14 +1,15 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useApp } from '@/lib/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { StarRating } from '@/components/ui/StarRating';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { fetchGigs, updateGig as apiUpdateGig, deleteGig as apiDeleteGig } from '@/lib/api';
 
 const navItems = [
   { href: '/seller/gigs', label: 'Gig Saya' },
@@ -18,10 +19,51 @@ const navItems = [
 
 export default function SellerGigsPage() {
   const { data: session } = useSession();
-  const { gigs, updateGig, deleteGig } = useApp();
-  const userId = (session?.user as any)?.id;
+  const [gigs, setGigs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const myGigs = gigs.filter((g) => g.sellerId === userId);
+  const loadGigs = async () => {
+    if (!session?.user) return;
+    try {
+      const userId = (session.user as any).id;
+      const data = await fetchGigs({ sellerId: userId });
+      setGigs(data.map((g: any) => ({
+        ...g,
+        id: g.gig_id.toString(),
+        portfolioImages: g.portfolio_images || [],
+        isActive: g.is_active,
+        rating: parseFloat(g.average_rating) || 0,
+        reviewCount: parseInt(g.review_count) || 0
+      })));
+    } catch (error) {
+      console.error('Error fetching gigs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadGigs();
+  }, [session]);
+
+  async function handleToggleActive(gig: any) {
+    try {
+      await apiUpdateGig(gig.id, { ...gig, isActive: !gig.isActive });
+      loadGigs();
+    } catch (error) {
+      console.error('Error updating gig status:', error);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Hapus gig ini?')) return;
+    try {
+      await apiDeleteGig(id);
+      loadGigs();
+    } catch (error) {
+      console.error('Error deleting gig:', error);
+    }
+  }
 
   return (
     <DashboardLayout title="Penjual" navItems={navItems}>
@@ -32,7 +74,9 @@ export default function SellerGigsPage() {
         </Link>
       </div>
 
-      {myGigs.length === 0 ? (
+      {loading ? (
+        <p className="text-sm text-slate-400 py-16 text-center">Memuat...</p>
+      ) : gigs.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-slate-400 mb-4">Anda belum memiliki gig.</p>
           <Link href="/seller/gigs/new">
@@ -41,16 +85,18 @@ export default function SellerGigsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {myGigs.map((gig) => (
+          {gigs.map((gig) => (
             <div key={gig.id} className="bg-white border border-slate-200 p-4 flex gap-4">
               <div className="relative w-20 h-14 flex-shrink-0 bg-slate-100">
-                <Image
-                  src={gig.portfolioImages[0]}
-                  alt={gig.title}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
+                {gig.portfolioImages[0] && (
+                  <Image
+                    src={gig.portfolioImages[0]}
+                    alt={gig.title}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -69,7 +115,7 @@ export default function SellerGigsPage() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                      onClick={() => updateGig(gig.id, { isActive: !gig.isActive })}
+                      onClick={() => handleToggleActive(gig)}
                       className="text-xs text-slate-500 hover:text-[#3b5fa0]"
                     >
                       {gig.isActive ? 'Nonaktifkan' : 'Aktifkan'}
@@ -78,9 +124,7 @@ export default function SellerGigsPage() {
                       Edit
                     </Link>
                     <button
-                      onClick={() => {
-                        if (confirm('Hapus gig ini?')) deleteGig(gig.id);
-                      }}
+                      onClick={() => handleDelete(gig.id)}
                       className="text-xs text-red-500 hover:underline"
                     >
                       Hapus

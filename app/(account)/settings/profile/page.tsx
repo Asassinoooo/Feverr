@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useApp } from '@/lib/context/AppContext';
+import { useState, useEffect } from 'react';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { fetchMe, updateProfile } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard/orders', label: 'Pesanan Saya' },
@@ -15,25 +14,49 @@ const navItems = [
 ];
 
 export default function ProfileSettingsPage() {
-  const { data: session } = useSession();
-  const { users, updateUserBalance } = useApp();
-  const userId = (session?.user as any)?.id;
-
-  const currentUser = users.find((u) => u.id === userId);
-
   const [form, setForm] = useState({
-    name: currentUser?.name || '',
-    bio: currentUser?.bio || '',
-    avatarUrl: currentUser?.avatarUrl || '',
+    name: '',
+    bio: '',
+    avatarUrl: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchMe();
+        setForm({
+          name: data.name || '',
+          bio: data.bio || '',
+          avatarUrl: data.avatar_url || '',
+        });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // In a real app, we'd update via API. Here we just show success state.
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(true);
+    setSaved(false);
+    try {
+      await updateProfile(form);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setSaving(false);
+    }
   }
+
+  if (loading) return <div className="p-8 text-slate-400">Memuat...</div>;
 
   return (
     <DashboardLayout title="Akun" navItems={navItems}>
@@ -77,7 +100,9 @@ export default function ProfileSettingsPage() {
             </div>
           )}
 
-          <Button type="submit" variant="primary">Simpan Profil</Button>
+          <Button type="submit" variant="primary" disabled={saving}>
+            {saving ? 'Menyimpan...' : 'Simpan Profil'}
+          </Button>
         </form>
       </div>
     </DashboardLayout>

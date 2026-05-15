@@ -27,21 +27,9 @@ export function Navbar() {
           <Link href="/search" className="hover:text-slate-900">
             Jelajahi
           </Link>
-          {session && isSeller && (
-            <Link href="/seller/gigs" className="hover:text-slate-900">
-              Jual Jasa
-            </Link>
-          )}
-          {session && !isSeller && (
-            <Link href="/seller/gigs" className="hover:text-slate-900">
-              Jual Jasa
-            </Link>
-          )}
-          {!session && (
-            <Link href="/seller/gigs" className="hover:text-slate-900">
-              Jual Jasa
-            </Link>
-          )}
+          <Link href="/seller/gigs" className="hover:text-slate-900">
+            Jual Jasa
+          </Link>
         </nav>
 
         {/* Auth Area */}

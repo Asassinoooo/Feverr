@@ -1,13 +1,13 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useApp } from '@/lib/context/AppContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { OrderStatusBadge } from '@/components/order/OrderStatusBadge';
 import { Button } from '@/components/ui/Button';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { fetchOrders, updateOrderStatus as apiUpdateOrderStatus } from '@/lib/api';
 
 const navItems = [
   { href: '/seller/gigs', label: 'Gig Saya' },
@@ -16,71 +16,98 @@ const navItems = [
 ];
 
 export default function SellerOrdersPage() {
-  const { data: session } = useSession();
-  const { orders, gigs, users, updateOrderStatus } = useApp();
-  const userId = (session?.user as any)?.id;
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const myOrders = orders
-    .filter((o) => o.sellerId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const loadOrders = async () => {
+    try {
+      const data = await fetchOrders('sale');
+      setOrders(data.map((o: any) => ({
+        ...o,
+        id: o.order_id.toString(),
+        gigId: o.gig_id.toString(),
+        buyerId: o.buyer_id.toString(),
+        createdAt: o.created_at,
+        totalPrice: parseFloat(o.total_price),
+        gigTitle: o.gig_title,
+        gigImage: o.gig_image,
+        buyerName: o.buyer_name
+      })));
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  async function handleUpdateStatus(id: string, status: string) {
+    try {
+      await apiUpdateOrderStatus(id, status);
+      loadOrders();
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  }
 
   return (
     <DashboardLayout title="Penjual" navItems={navItems}>
       <h1 className="text-xl font-bold text-slate-800 mb-6">Pesanan Masuk</h1>
 
-      {myOrders.length === 0 ? (
-        <p className="text-slate-400 text-sm py-8 text-center">Belum ada pesanan.</p>
+      {loading ? (
+        <p className="text-slate-400 text-sm py-16 text-center">Memuat...</p>
+      ) : orders.length === 0 ? (
+        <p className="text-slate-400 text-sm py-16 text-center">Belum ada pesanan.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {myOrders.map((order) => {
-            const gig = gigs.find((g) => g.id === order.gigId);
-            const buyer = users.find((u) => u.id === order.buyerId);
-            return (
-              <div key={order.id} className="bg-white border border-slate-200 p-4 flex gap-4">
-                {gig && (
-                  <div className="relative w-16 h-12 flex-shrink-0 bg-slate-100">
-                    <Image
-                      src={gig.portfolioImages[0]}
-                      alt={gig.title}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  </div>
+          {orders.map((order) => (
+            <div key={order.id} className="bg-white border border-slate-200 p-4 flex gap-4">
+              <div className="relative w-16 h-12 flex-shrink-0 bg-slate-100">
+                {order.gigImage && (
+                  <Image
+                    src={order.gigImage}
+                    alt={order.gigTitle}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-medium text-slate-800 truncate">{gig?.title}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        dari {buyer?.name} · {formatDate(order.createdAt)} · {formatCurrency(order.totalPrice)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <OrderStatusBadge status={order.status} />
-                      {order.status === 'pending' && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => updateOrderStatus(order.id, 'in_progress')}
-                        >
-                          Mulai Kerjakan
-                        </Button>
-                      )}
-                      {order.status === 'in_progress' && (
-                        <Link href={`/seller/orders/${order.id}`}>
-                          <Button size="sm" variant="primary">Kirim</Button>
-                        </Link>
-                      )}
-                      <Link href={`/seller/orders/${order.id}`} className="text-xs text-[#3b5fa0] hover:underline">
-                        Detail
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-medium text-slate-800 truncate">{order.gigTitle}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      dari {order.buyerName} · {formatDate(order.createdAt)} · {formatCurrency(order.totalPrice)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <OrderStatusBadge status={order.status} />
+                    {order.status === 'pending' && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => handleUpdateStatus(order.id, 'in_progress')}
+                      >
+                        Mulai Kerjakan
+                      </Button>
+                    )}
+                    {order.status === 'in_progress' && (
+                      <Link href={`/seller/orders/${order.id}`}>
+                        <Button size="sm" variant="primary">Kirim</Button>
                       </Link>
-                    </div>
+                    )}
+                    <Link href={`/seller/orders/${order.id}`} className="text-xs text-[#3b5fa0] hover:underline">
+                      Detail
+                    </Link>
                   </div>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </DashboardLayout>

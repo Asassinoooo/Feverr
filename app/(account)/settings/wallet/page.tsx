@@ -1,11 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useApp } from '@/lib/context/AppContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { Transaction } from '@/lib/types';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { fetchMe, fetchTransactions, topUp } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard/orders', label: 'Pesanan Saya' },
@@ -15,27 +15,40 @@ const navItems = [
 
 export default function WalletPage() {
   const { data: session } = useSession();
-  const { users, transactions, addTransaction, updateUserBalance } = useApp();
-  const userId = (session?.user as any)?.id;
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const currentUser = users.find((u) => u.id === userId);
-  const balance = currentUser?.balance ?? 0;
-  const myTransactions = transactions
-    .filter((t) => t.userId === userId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const loadData = async () => {
+    try {
+      const [userData, txnData] = await Promise.all([
+        fetchMe(),
+        fetchTransactions()
+      ]);
+      setBalance(Number(userData.balance));
+      setTransactions(txnData.map((t: any) => ({
+        ...t,
+        id: t.transaction_id.toString(),
+        createdAt: t.created_at
+      })));
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function handleTopUp() {
-    const amount = 100000;
-    const txn: Transaction = {
-      id: `txn-${Date.now()}`,
-      userId,
-      type: 'credit',
-      amount,
-      description: 'Top up saldo',
-      createdAt: new Date().toISOString(),
-    };
-    addTransaction(txn);
-    updateUserBalance(userId, amount);
+  useEffect(() => {
+    if (session) loadData();
+  }, [session]);
+
+  async function handleTopUp() {
+    try {
+      await topUp(100000);
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error('Error topping up:', error);
+    }
   }
 
   return (
@@ -59,11 +72,13 @@ export default function WalletPage() {
       {/* Transaction History */}
       <div>
         <h2 className="text-sm font-semibold text-slate-700 mb-4">Riwayat Transaksi</h2>
-        {myTransactions.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-slate-400">Memuat...</p>
+        ) : transactions.length === 0 ? (
           <p className="text-sm text-slate-400">Belum ada transaksi.</p>
         ) : (
           <div className="border border-slate-200 bg-white divide-y divide-slate-100">
-            {myTransactions.map((txn) => (
+            {transactions.map((txn) => (
               <div key={txn.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-sm text-slate-700">{txn.description}</p>
