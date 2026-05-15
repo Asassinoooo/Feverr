@@ -2,9 +2,13 @@ import { query } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
-export const GET = auth(async (req) => {
-  const { orderId } = await (req as any).params;
-  const userId = req.auth?.user?.id;
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const { orderId } = await params;
+  const session = await auth();
+  const userId = session?.user?.id;
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,16 +23,25 @@ export const GET = auth(async (req) => {
       ORDER BY m.created_at ASC
     `, [orderId]);
 
-    return NextResponse.json(res.rows);
+    return NextResponse.json(res.rows.map((row: any) => ({
+      ...row,
+      id: row.message_id.toString(),
+      senderId: row.sender_id.toString(),
+      createdAt: row.created_at
+    })));
   } catch (error) {
     console.error('Error fetching messages:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-});
+}
 
-export const POST = auth(async (req) => {
-  const { orderId } = await (req as any).params;
-  const userId = req.auth?.user?.id;
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const { orderId } = await params;
+  const session = await auth();
+  const userId = session?.user?.id;
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -45,9 +58,15 @@ export const POST = auth(async (req) => {
       [orderId, userId, content]
     );
 
-    return NextResponse.json(res.rows[0], { status: 201 });
+    const msg = res.rows[0];
+    return NextResponse.json({
+      ...msg,
+      id: msg.message_id.toString(),
+      senderId: msg.sender_id.toString(),
+      createdAt: msg.created_at
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-});
+}
