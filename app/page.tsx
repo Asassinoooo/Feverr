@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { GIG_CATEGORIES } from '@/lib/mock/gigs';
+import { GIG_CATEGORIES } from '@/lib/constants';
+
 import { GigCard } from '@/components/gig/GigCard';
 import { query } from '@/lib/db';
 
