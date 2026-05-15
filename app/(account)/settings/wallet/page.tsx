@@ -15,18 +15,32 @@ const navItems = [
 
 export default function WalletPage() {
   const { data: session } = useSession();
-  const [balance, setBalance] = useState(0);
+  const [rupiahBalance, setRupiahBalance] = useState(0);
+  const [jigsawBalance, setJigsawBalance] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [swapAmount, setSwapAmount] = useState('');
   const [loading, setLoading] = useState(true);
+  const [swapping, setSwapping] = useState(false);
+  const [error, setError] = useState('');
+
+  const globalUserId = (session?.user as any)?.globalUserId;
+
+  const [swapDirection, setSwapDirection] = useState<'jgc_to_idr' | 'idr_to_jgc'>('jgc_to_idr');
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      const [userData, txnData] = await Promise.all([
-        fetchMe(),
-        fetchTransactions()
-      ]);
-      setBalance(Number(userData.balance));
-      setTransactions(txnData.map((t: any) => ({
+      // 1. Fetch Wallet Info (Rupiah + JGC from Server-side)
+      const infoRes = await fetch('/api/wallet/info');
+      if (infoRes.ok) {
+        const info = await infoRes.json();
+        setRupiahBalance(info.rupiahBalance);
+        setJigsawBalance(info.jigsawBalance);
+      }
+
+      // 2. Fetch Feverr Transactions
+      const txns = await fetchTransactions();
+      setTransactions(txns.map((t: any) => ({
         ...t,
         id: t.transaction_id.toString(),
         createdAt: t.created_at
@@ -40,38 +54,146 @@ export default function WalletPage() {
 
   useEffect(() => {
     if (session) loadData();
-  }, [session]);
+  }, [session, globalUserId]);
 
-  async function handleTopUp() {
+  async function handleSwap(e: React.FormEvent) {
+    e.preventDefault();
+    if (!swapAmount || swapping) return;
+    
+    setSwapping(true);
+    setError('');
     try {
-      await topUp(100000);
-      await loadData(); // Refresh data
-    } catch (error) {
-      console.error('Error topping up:', error);
+      const res = await fetch('/api/wallet/swap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: swapAmount,
+          direction: swapDirection
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal melakukan swap');
+      
+      setSwapAmount('');
+      await loadData();
+      
+      const message = swapDirection === 'jgc_to_idr' 
+        ? `Berhasil menukar ${data.swapped} JGC menjadi ${formatCurrency(data.received)}`
+        : `Berhasil menukar ${formatCurrency(data.swapped)} menjadi ${data.received} JGC`;
+        
+      alert(message);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSwapping(false);
     }
   }
 
   return (
     <DashboardLayout title="Akun" navItems={navItems}>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Dompet</h1>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">Dompet & Saldo</h1>
 
-      {/* Balance Card */}
-      <div className="bg-[#3b5fa0] text-white p-6 mb-6 max-w-sm">
-        <div className="text-xs font-semibold uppercase tracking-wider text-blue-200 mb-2">
-          Saldo Anda
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Rupiah Balance (Main) */}
+        <div className="bg-white border border-slate-200 p-6 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            Saldo Rupiah (Feverr)
+          </div>
+          <div className="text-3xl font-bold text-slate-800 mb-4">
+            {formatCurrency(rupiahBalance)}
+          </div>
+          <p className="text-xs text-slate-500 italic">
+            Saldo ini digunakan untuk semua transaksi jasa di Feverr.
+          </p>
         </div>
-        <div className="text-3xl font-bold mb-4">{formatCurrency(balance)}</div>
-        <Button
-          onClick={handleTopUp}
-          className="bg-white text-[#3b5fa0] hover:bg-slate-100 text-sm font-medium px-4 py-2"
-        >
-          + Top Up Rp100.000
-        </Button>
+
+        {/* JigsawCoin Balance */}
+        <div className="bg-slate-50 border border-slate-200 p-6 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-[#3b5fa0] mb-2">
+            Saldo JigsawCoin (Eksternal)
+          </div>
+          <div className="text-3xl font-bold text-slate-800 mb-2">
+            {jigsawBalance.toLocaleString()} JGC
+          </div>
+          <p className="text-xs text-slate-400">
+            JGC diperoleh dari layanan luar. Tukarkan ke Rupiah untuk belanja.
+          </p>
+        </div>
+      </div>
+
+      {/* Swap Section */}
+      <div className="bg-white border border-[#3b5fa0]/20 p-6 mb-8 max-w-xl border-l-4 border-l-[#3b5fa0]">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            🔄 Tukar Saldo
+          </h2>
+          <div className="flex bg-slate-100 p-1 rounded-md">
+            <button
+              onClick={() => { setSwapDirection('jgc_to_idr'); setSwapAmount(''); setError(''); }}
+              className={`px-3 py-1 text-[10px] font-bold uppercase rounded ${swapDirection === 'jgc_to_idr' ? 'bg-white text-[#3b5fa0] shadow-sm' : 'text-slate-400'}`}
+            >
+              JGC → IDR
+            </button>
+            <button
+              onClick={() => { setSwapDirection('idr_to_jgc'); setSwapAmount(''); setError(''); }}
+              className={`px-3 py-1 text-[10px] font-bold uppercase rounded ${swapDirection === 'idr_to_jgc' ? 'bg-white text-[#3b5fa0] shadow-sm' : 'text-slate-400'}`}
+            >
+              IDR → JGC
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSwap} className="flex flex-col gap-4">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 block">
+                {swapDirection === 'jgc_to_idr' ? 'Jumlah JGC' : 'Jumlah Rupiah'}
+              </label>
+              <input
+                type="number"
+                value={swapAmount}
+                onChange={(e) => setSwapAmount(e.target.value)}
+                placeholder="0"
+                className="w-full border border-slate-200 px-3 py-2 text-sm focus:outline-[#3b5fa0]"
+                min={swapDirection === 'jgc_to_idr' ? '0.01' : '10'}
+                step={swapDirection === 'jgc_to_idr' ? '0.01' : '10'}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 block">
+                Estimasi Hasil
+              </label>
+              <div className="w-full bg-slate-50 border border-slate-100 px-3 py-2 text-sm text-slate-500 font-medium">
+                {swapDirection === 'jgc_to_idr' 
+                  ? (swapAmount ? formatCurrency(Math.round(parseFloat(swapAmount) * 1000)) : 'Rp0')
+                  : (swapAmount ? (parseFloat(swapAmount) / 1000).toFixed(2) + ' JGC' : '0.00 JGC')
+                }
+              </div>
+            </div>
+          </div>
+
+          {error && <p className="text-xs text-red-500">{error}</p>}
+
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={swapping || !swapAmount}
+            className="w-full"
+          >
+            {swapping ? 'Memproses Swap...' : (
+              swapDirection === 'jgc_to_idr' ? 'Tukar ke Rupiah' : 'Tukar ke JigsawCoin'
+            )}
+          </Button>
+          <p className="text-[10px] text-center text-slate-400 uppercase tracking-tight">
+            Kurs Tetap: 1 JigsawCoin = Rp1.000
+          </p>
+        </form>
       </div>
 
       {/* Transaction History */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Riwayat Transaksi</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-4">Riwayat Transaksi Rupiah</h2>
         {loading ? (
           <p className="text-sm text-slate-400">Memuat...</p>
         ) : transactions.length === 0 ? (
