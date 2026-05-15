@@ -2,7 +2,7 @@ import { query } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
-export const GET = auth(async (req) => {
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const gigId = searchParams.get('gigId');
   const orderId = searchParams.get('orderId');
@@ -26,10 +26,11 @@ export const GET = auth(async (req) => {
     console.error('Error fetching reviews:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-});
+}
 
-export const POST = auth(async (req) => {
-  const userId = req.auth?.user?.id;
+export async function POST(req: Request) {
+  const session = await auth();
+  const userId = session?.user?.id;
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -42,9 +43,6 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Use a transaction to create review and complete order
-    // But since lib/db only has simple query, I'll do it sequentially
-    
     // 1. Create review
     const reviewRes = await query(
       'INSERT INTO reviews (order_id, gig_id, buyer_id, seller_id, rating, comment) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
@@ -85,4 +83,4 @@ export const POST = auth(async (req) => {
     console.error('Error creating review:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-});
+}
