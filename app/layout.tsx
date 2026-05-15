@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
-import { AppProvider } from '@/lib/context/AppContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
@@ -15,11 +14,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body className="flex flex-col min-h-screen bg-[#f8fafc] text-slate-700">
         <SessionProvider>
-          <AppProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </AppProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
         </SessionProvider>
       </body>
     </html>

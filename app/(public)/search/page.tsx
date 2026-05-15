@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { GIG_CATEGORIES } from '@/lib/mock/gigs';
+import { GIG_CATEGORIES } from '@/lib/constants';
+
 import { GigCard } from '@/components/gig/GigCard';
 import { fetchGigs } from '@/lib/api';
 
