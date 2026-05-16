@@ -23,8 +23,37 @@ export function GigForm({ existingGig }: GigFormProps) {
     deliveryDays: existingGig?.deliveryDays?.toString() || '',
     tags: existingGig?.tags?.join(', ') || '',
     isActive: existingGig?.isActive ?? true,
+    portfolioImages: existingGig?.portfolioImages || [] as string[],
   });
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setForm((prev) => ({
+        ...prev,
+        portfolioImages: [...prev.portfolioImages, data.url],
+      }));
+    } catch (err) {
+      console.error(err);
+      setErrors((prev) => ({ ...prev, images: 'Gagal mengunggah gambar' }));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function validate() {
     const e: Record<string, string> = {};
@@ -55,7 +84,7 @@ export function GigForm({ existingGig }: GigFormProps) {
           deliveryDays, 
           tags,
           isActive: form.isActive,
-          portfolioImages: existingGig.portfolioImages // Keep existing
+          portfolioImages: form.portfolioImages
         });
       } else {
         await createGig({
@@ -66,9 +95,9 @@ export function GigForm({ existingGig }: GigFormProps) {
           deliveryDays,
           tags,
           isActive: form.isActive,
-          portfolioImages: [
-            `https://picsum.photos/seed/${Date.now()}/800/500`,
-          ]
+          portfolioImages: form.portfolioImages.length > 0 
+            ? form.portfolioImages 
+            : [`https://picsum.photos/seed/${Date.now()}/800/500`]
         });
       }
       router.push('/seller/gigs');
@@ -134,6 +163,30 @@ export function GigForm({ existingGig }: GigFormProps) {
         onChange={(e) => setForm({ ...form, tags: e.target.value })}
         placeholder="logo, branding, desain grafis"
       />
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium text-slate-700">Gambar Portfolio</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {form.portfolioImages.map((img, idx) => (
+            <div key={idx} className="relative w-24 h-24 border border-slate-200 rounded overflow-hidden group">
+              <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, portfolioImages: prev.portfolioImages.filter((_, i) => i !== idx) }))}
+                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <label className="w-24 h-24 border-2 border-dashed border-slate-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-[#3b5fa0] hover:bg-slate-50 transition-colors">
+            <span className="text-2xl text-slate-400">+</span>
+            <span className="text-xs text-slate-500">{uploading ? 'Uploading...' : 'Tambah'}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+          </label>
+        </div>
+        {errors.images && <p className="text-xs text-red-500">{errors.images}</p>}
+      </div>
 
       <div className="flex items-center gap-3">
         <input
