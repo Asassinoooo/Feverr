@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { GIG_CATEGORIES } from '@/lib/mock/gigs';
+import { GIG_CATEGORIES } from '@/lib/constants';
 
 export default function SearchFilter({
   initialQuery,
