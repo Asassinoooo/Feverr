@@ -8,7 +8,7 @@ interface AvatarProps {
 }
 
 export function Avatar({ src, name, size = 36, className = '' }: AvatarProps) {
-  const initials = name
+  const initials = (name || '??')
     .split(' ')
     .map((n) => n[0])
     .join('')
