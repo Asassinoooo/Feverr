@@ -38,6 +38,5 @@ BackendPlan.md
 CONTEXT.md
 .gitignore
 .gitignore
-dump.sql
 scripts/init-db.js
 scripts/seed-db.js
