@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Gig } from '@/lib/types';
-import { GIG_CATEGORIES } from '@/lib/mock/gigs';
+import { GIG_CATEGORIES } from '@/lib/constants';
+
 import { Input, Textarea, Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { createGig, updateGig } from '@/lib/api';
