@@ -1,3 +1,12 @@
 import Redis from 'ioredis';
 
-export const redis = new Redis(process.env.REDIS_URL as string);
+const getRedisClient = () => {
+  if (!process.env.REDIS_URL) return null;
+  return new Redis(process.env.REDIS_URL, {
+    tls: {},              // wajib untuk Upstash (rediss://)
+    maxRetriesPerRequest: 1,
+    connectTimeout: 5000,
+  });
+};
+
+export const redis = getRedisClient();
