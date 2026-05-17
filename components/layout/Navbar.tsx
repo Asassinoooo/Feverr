@@ -25,10 +25,10 @@ export function Navbar() {
         {/* Desktop Nav */}
         <nav className="hidden sm:flex items-center gap-6 text-sm text-slate-600">
           <Link href="/search" className="hover:text-slate-900">
-            Jelajahi
+            Explore
           </Link>
           <a href="/seller/gigs" className="hover:text-slate-900">
-            Jual Jasa
+            Become a Seller
           </a>
         </nav>
 
@@ -54,7 +54,7 @@ export function Navbar() {
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    Pesanan Saya
+                    My Orders
                   </a>
                   {isSeller && (
                     <a
@@ -62,7 +62,7 @@ export function Navbar() {
                       className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      Gig Saya
+                      My Gigs
                     </a>
                   )}
                   <a
@@ -70,14 +70,14 @@ export function Navbar() {
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    Pengaturan
+                    Settings
                   </a>
                   <a
                     href="/settings/wallet"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
-                    Dompet
+                    Wallet
                   </a>
                   <hr className="my-1 border-slate-100" />
                   <button
@@ -87,7 +87,7 @@ export function Navbar() {
                     }}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
                   >
-                    Keluar
+                    Sign Out
                   </button>
                 </div>
               )}
@@ -96,12 +96,12 @@ export function Navbar() {
             <>
               <Link href="/login">
                 <Button variant="ghost" size="sm">
-                  Masuk
+                  Sign In
                 </Button>
               </Link>
               <Link href="/register">
                 <Button variant="primary" size="sm">
-                  Daftar
+                  Sign Up
                 </Button>
               </Link>
             </>
@@ -128,23 +128,23 @@ export function Navbar() {
       {mobileOpen && (
         <div className="sm:hidden border-t border-slate-100 bg-white py-3 px-4 flex flex-col gap-3">
           <Link href="/search" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
-            Jelajahi
+            Explore
           </Link>
           <a href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
-            Jual Jasa
+            Become a Seller
           </a>
           {session ? (
             <>
               <a href="/dashboard/orders" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
-                Pesanan Saya
+                My Orders
               </a>
               {isSeller && (
                 <a href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
-                  Gig Saya
+                  My Gigs
                 </a>
               )}
               <a href="/settings/profile" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
-                Pengaturan
+                Settings
               </a>
               <button
                 className="text-left text-sm text-red-600"
@@ -153,16 +153,16 @@ export function Navbar() {
                   signOut({ callbackUrl: '/' });
                 }}
               >
-                Keluar
+                Sign Out
               </button>
             </>
           ) : (
             <div className="flex gap-2">
               <Link href="/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="secondary" size="sm">Masuk</Button>
+                <Button variant="secondary" size="sm">Sign In</Button>
               </Link>
               <Link href="/register" onClick={() => setMobileOpen(false)}>
-                <Button variant="primary" size="sm">Daftar</Button>
+                <Button variant="primary" size="sm">Sign Up</Button>
               </Link>
             </div>
           )}

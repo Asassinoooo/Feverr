@@ -77,7 +77,7 @@ export default async function GigDetailPage({ params }: Props) {
           {/* Rating + seller */}
           <div className="flex items-center gap-3 mb-6 text-sm text-slate-500">
             <StarRating rating={gig.rating} size="sm" />
-            <span>{gig.rating.toFixed(1)} ({gig.reviewCount} ulasan)</span>
+            <span>{gig.rating.toFixed(1)} ({gig.reviewCount} reviews)</span>
             {seller && (
               <>
                 <span>·</span>
@@ -109,7 +109,7 @@ export default async function GigDetailPage({ params }: Props) {
 
           {/* Description */}
           <div className="mb-8">
-            <h2 className="text-base font-semibold text-slate-800 mb-3">Tentang Jasa Ini</h2>
+            <h2 className="text-base font-semibold text-slate-800 mb-3">About This Service</h2>
             <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
               {gig.description}
             </div>
@@ -117,7 +117,7 @@ export default async function GigDetailPage({ params }: Props) {
 
           {/* Tags */}
           <div className="mb-8">
-            <h2 className="text-base font-semibold text-slate-800 mb-3">Tag</h2>
+            <h2 className="text-base font-semibold text-slate-800 mb-3">Tags</h2>
             <div className="flex flex-wrap gap-2">
               {gig.tags.map((tag: string) => (
                 <Link
@@ -134,10 +134,10 @@ export default async function GigDetailPage({ params }: Props) {
           {/* Reviews */}
           <div>
             <h2 className="text-base font-semibold text-slate-800 mb-4">
-              Ulasan ({reviews.length})
+              Reviews ({reviews.length})
             </h2>
             {reviews.length === 0 ? (
-              <p className="text-sm text-slate-400">Belum ada ulasan untuk jasa ini.</p>
+              <p className="text-sm text-slate-400">No reviews for this service yet.</p>
             ) : (
               <div className="flex flex-col gap-5">
                 {reviews.map((review: any) => (
@@ -162,16 +162,16 @@ export default async function GigDetailPage({ params }: Props) {
           <div className="border border-slate-200 bg-white shadow-sm sticky top-20">
             <div className="p-5 border-b border-slate-100">
               <div className="text-2xl font-bold text-slate-800">{formatCurrency(gig.price)}</div>
-              <div className="text-xs text-slate-400 mt-0.5">Harga mulai dari</div>
+              <div className="text-xs text-slate-400 mt-0.5">Starting price</div>
             </div>
             <div className="p-5 border-b border-slate-100">
               <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
                 <span>🕐</span>
-                <span>Pengiriman dalam <strong>{gig.deliveryDays} hari</strong></span>
+                <span>Delivery in <strong>{gig.deliveryDays} days</strong></span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <span>⭐</span>
-                <span><strong>{gig.rating.toFixed(1)}</strong> rating ({gig.reviewCount} ulasan)</span>
+                <span><strong>{gig.rating.toFixed(1)}</strong> rating ({gig.reviewCount} reviews)</span>
               </div>
             </div>
             {seller && (
@@ -188,7 +188,7 @@ export default async function GigDetailPage({ params }: Props) {
             <div className="p-5">
               <Link href={`/checkout/${gig.id}`} className="block">
                 <Button variant="primary" size="lg" className="w-full">
-                  Pesan Sekarang
+                  Order Now
                 </Button>
               </Link>
             </div>

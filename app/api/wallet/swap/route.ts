@@ -1,6 +1,7 @@
 import { query } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 const JIGSAW_API_KEY = process.env.JIGSAWCOIN_API;
 const JIGSAW_URL = 'https://jigsaw-coin-api.vercel.app/api/v1';
@@ -38,19 +39,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Insufficient JigsawCoin balance' }, { status: 400 });
       }
 
+      const uniqueSuffix = randomUUID().slice(0, 8);
       const deductRes = await fetch(`${JIGSAW_URL}/wallet/transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': JIGSAW_API_KEY! },
         body: JSON.stringify({
           global_user_id: globalUserId,
           amount: -value,
-          reference_id: `Swap to Feverr IDR (${value * EXCHANGE_RATE} IDR)`
+          reference_id: `Swap to Feverr IDR (${value * EXCHANGE_RATE} IDR) [${uniqueSuffix}]`
         })
       });
 
+      const deductData = await deductRes.json();
       if (!deductRes.ok) {
-        const errData = await deductRes.json();
-        return NextResponse.json({ error: errData.message || 'Failed to deduct JigsawCoin' }, { status: 500 });
+        return NextResponse.json({ error: deductData.message || 'Failed to deduct JigsawCoin' }, { status: 500 });
+      }
+
+      // Check for duplicate / already processed transactions
+      if (deductData.message !== 'Transaction Successful') {
+        return NextResponse.json({ error: 'Transaction already processed or invalid' }, { status: 409 });
       }
 
       const rupiahAmount = Math.round(value * EXCHANGE_RATE);
@@ -80,19 +87,25 @@ export async function POST(request: Request) {
       }
 
       // 1. Add to JigsawCoin
+      const uniqueSuffix = randomUUID().slice(0, 8);
       const addRes = await fetch(`${JIGSAW_URL}/wallet/transaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': JIGSAW_API_KEY! },
         body: JSON.stringify({
           global_user_id: globalUserId,
           amount: jgcToReceive,
-          reference_id: `Swap from Feverr IDR (${rupiahToSwap} IDR)`
+          reference_id: `Swap from Feverr IDR (${rupiahToSwap} IDR) [${uniqueSuffix}]`
         })
       });
 
+      const addData = await addRes.json();
       if (!addRes.ok) {
-        const errData = await addRes.json();
-        return NextResponse.json({ error: errData.message || 'Failed to add JigsawCoin' }, { status: 500 });
+        return NextResponse.json({ error: addData.message || 'Failed to add JigsawCoin' }, { status: 500 });
+      }
+
+      // Check for duplicate / already processed transactions
+      if (addData.message !== 'Transaction Successful') {
+        return NextResponse.json({ error: 'Transaction already processed or invalid' }, { status: 409 });
       }
 
       // 2. Deduct from Feverr Rupiah

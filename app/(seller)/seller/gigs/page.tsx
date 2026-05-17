@@ -12,9 +12,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchGigs, updateGig as apiUpdateGig, deleteGig as apiDeleteGig } from '@/lib/api';
 
 const navItems = [
-  { href: '/seller/gigs', label: 'Gig Saya' },
-  { href: '/seller/orders', label: 'Pesanan Masuk' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/seller/gigs', label: 'My Gigs' },
+  { href: '/seller/orders', label: 'Incoming Orders' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function SellerGigsPage() {
@@ -56,7 +56,7 @@ export default function SellerGigsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus gig ini?')) return;
+    if (!confirm('Delete this gig?')) return;
     try {
       await apiDeleteGig(id);
       loadGigs();
@@ -66,21 +66,21 @@ export default function SellerGigsPage() {
   }
 
   return (
-    <DashboardLayout title="Penjual" navItems={navItems}>
+    <DashboardLayout title="Seller" navItems={navItems}>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-800">Gig Saya</h1>
+        <h1 className="text-xl font-bold text-slate-800">My Gigs</h1>
         <Link href="/seller/gigs/new">
-          <Button variant="primary" size="sm">+ Buat Gig Baru</Button>
+          <Button variant="primary" size="sm">+ Create New Gig</Button>
         </Link>
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400 py-16 text-center">Memuat...</p>
+        <p className="text-sm text-slate-400 py-16 text-center">Loading...</p>
       ) : gigs.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-slate-400 mb-4">Anda belum memiliki gig.</p>
+          <p className="text-slate-400 mb-4">You do not have any gigs yet.</p>
           <Link href="/seller/gigs/new">
-            <Button variant="primary">Buat Gig Pertama</Button>
+            <Button variant="primary">Create First Gig</Button>
           </Link>
         </div>
       ) : (
@@ -104,7 +104,7 @@ export default function SellerGigsPage() {
                     <h3 className="text-sm font-medium text-slate-800 truncate">{gig.title}</h3>
                     <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
                       <Badge variant={gig.isActive ? 'success' : 'default'}>
-                        {gig.isActive ? 'Aktif' : 'Nonaktif'}
+                        {gig.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                       <span>·</span>
                       <StarRating rating={gig.rating} size="sm" />
@@ -118,7 +118,7 @@ export default function SellerGigsPage() {
                       onClick={() => handleToggleActive(gig)}
                       className="text-xs text-slate-500 hover:text-[#3b5fa0]"
                     >
-                      {gig.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                      {gig.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                     <Link href={`/seller/gigs/${gig.id}/edit`} className="text-xs text-[#3b5fa0] hover:underline">
                       Edit
@@ -127,7 +127,7 @@ export default function SellerGigsPage() {
                       onClick={() => handleDelete(gig.id)}
                       className="text-xs text-red-500 hover:underline"
                     >
-                      Hapus
+                      Delete
                     </button>
                   </div>
                 </div>

@@ -16,9 +16,9 @@ import { fetchOrder, fetchMessages, sendMessage as apiSendMessage, fetchReviews,
 const STEPS: OrderStatus[] = ['pending', 'in_progress', 'delivered', 'completed'];
 
 const navItems = [
-  { href: '/dashboard/orders', label: 'Pesanan Saya' },
-  { href: '/settings/profile', label: 'Pengaturan Profil' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/dashboard/orders', label: 'My Orders' },
+  { href: '/settings/profile', label: 'Profile Settings' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -101,29 +101,29 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
     }
   }
 
-  if (loading && !order) return <div className="p-8 text-slate-400">Memuat...</div>;
-  if (!order) return <div className="p-8 text-slate-400 text-sm">Pesanan tidak ditemukan.</div>;
+  if (loading) return <div className="p-8 text-slate-400">Loading...</div>;
+  if (!order) return <div className="p-8 text-slate-400 text-sm">Order not found.</div>;
 
   const currentStepIndex = STEPS.indexOf(order.status as OrderStatus);
 
   return (
-    <DashboardLayout title="Pembeli" navItems={navItems}>
+    <DashboardLayout title="Buyer" navItems={navItems}>
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard/orders" className="text-sm text-[#3b5fa0] hover:underline">← Kembali</Link>
-        <h1 className="text-xl font-bold text-slate-800">Detail Pesanan</h1>
+        <Link href="/dashboard/orders" className="text-sm text-[#3b5fa0] hover:underline">← Back</Link>
+        <h1 className="text-xl font-bold text-slate-800">Order Details</h1>
       </div>
 
       {/* Status Timeline */}
       <div className="bg-white border border-slate-200 p-5 mb-6">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Status Pesanan</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-4">Order Status</h2>
         <div className="flex items-center">
           {STEPS.map((step, i) => {
             const done = i <= currentStepIndex;
             const labels: Record<string, string> = {
-              pending: 'Menunggu',
-              in_progress: 'Dikerjakan',
-              delivered: 'Terkirim',
-              completed: 'Selesai',
+              pending: 'Pending',
+              in_progress: 'In Progress',
+              delivered: 'Delivered',
+              completed: 'Completed',
             };
             return (
               <div key={step} className="flex items-center flex-1 last:flex-none">
@@ -151,8 +151,8 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">{order.gig_title}</h3>
-            <p className="text-xs text-slate-400 mt-1">oleh {order.seller_name}</p>
-            <p className="text-xs text-slate-400">Dipesan: {formatDate(order.createdAt)}</p>
+            <p className="text-xs text-slate-400 mt-1">by {order.seller_name}</p>
+            <p className="text-xs text-slate-400">Ordered: {formatDate(order.createdAt)}</p>
           </div>
           <div className="text-right">
             <div className="text-base font-bold text-slate-800">{formatCurrency(order.totalPrice)}</div>
@@ -161,7 +161,7 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
         </div>
         {order.buyerInstructions && (
           <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-500 mb-1">Instruksi Anda:</p>
+            <p className="text-xs font-medium text-slate-500 mb-1">Your Instructions:</p>
             <p className="text-sm text-slate-600">{order.buyerInstructions}</p>
           </div>
         )}
@@ -170,12 +170,12 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
       {/* Delivered files */}
       {order.status === 'delivered' && order.deliveryFiles.length > 0 && (
         <div className="bg-white border border-slate-200 p-5 mb-6">
-          <h3 className="text-sm font-semibold text-slate-700 mb-3">File Dikirim</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">Delivered Files</h3>
           {order.deliveryFiles.map((f: string) => (
             <div key={f} className="flex items-center gap-2 py-2 border-b border-slate-100 last:border-b-0">
               <span className="text-slate-400">📎</span>
               <span className="text-sm text-slate-700 flex-1">{f}</span>
-              <button className="text-xs text-[#3b5fa0] hover:underline">Unduh</button>
+              <button className="text-xs text-[#3b5fa0] hover:underline">Download</button>
             </div>
           ))}
         </div>
@@ -184,7 +184,7 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
       {/* Review Form */}
       {(order.status === 'delivered' || order.status === 'completed') && !existingReview && !reviewSubmitted && (
         <div className="bg-white border border-slate-200 p-5 mb-6">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Beri Ulasan</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-4">Order Actions</h3>
           <form onSubmit={handleSubmitReview} className="flex flex-col gap-4">
             <div>
               <label className="text-sm text-slate-600 block mb-2">Rating</label>
@@ -196,23 +196,22 @@ export default function BuyerOrderDetailPage({ params }: { params: Promise<{ id:
               />
             </div>
             <Textarea
-              label="Komentar"
+              label="Comment"
               value={reviewComment}
               onChange={(e) => setReviewComment(e.target.value)}
-              placeholder="Bagikan pengalaman Anda..."
+              placeholder="Tell us about your experience working with this seller..."
               rows={3}
               required
             />
             <Button type="submit" variant="primary" size="md" disabled={loading}>
-              {loading ? 'Memproses...' : 'Kirim Ulasan & Selesaikan'}
+              {loading ? 'Processing...' : 'Submit Review & Complete'}
             </Button>
           </form>
         </div>
       )}
-
       {(reviewSubmitted || (existingReview && order.status !== 'delivered')) && (
         <div className="bg-green-50 border border-green-200 p-4 mb-6 text-sm text-green-700">
-          Terima kasih telah memberikan ulasan!
+          Thank you for submitting a review!
         </div>
       )}
 

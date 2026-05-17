@@ -27,7 +27,7 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.username || !form.email || !form.password) {
-      setError('Semua kolom wajib diisi.');
+      setError('All fields are required.');
       return;
     }
     setLoading(true);
@@ -43,7 +43,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Gagal mendaftar.');
+        throw new Error(data.error || 'Failed to register.');
       }
 
       router.push('/login?registered=1');
@@ -58,18 +58,18 @@ export default function RegisterPage() {
     <div className="min-h-[calc(100vh-56px)] flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Buat akun Feverr</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Create a Feverr Account</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Sudah punya akun?{' '}
+            Already have an account?{' '}
             <Link href="/login" className="text-[#3b5fa0] hover:underline">
-              Masuk
+              Sign In
             </Link>
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
-            label="Nama Lengkap"
+            label="Full Name"
             type="text"
             value={form.name}
             onChange={(e) => handleChange('name', e.target.value)}
@@ -97,21 +97,21 @@ export default function RegisterPage() {
             type="password"
             value={form.password}
             onChange={(e) => handleChange('password', e.target.value)}
-            placeholder="Min. 8 karakter"
+            placeholder="Min. 8 characters"
             required
           />
 
           {/* Role Toggle */}
           <div>
             <label className="text-sm font-medium text-slate-700 block mb-2">
-              Saya mendaftar sebagai
+              Account Type
             </label>
             <div className="flex gap-0 border border-slate-300">
               {(['buyer', 'seller', 'both'] as UserRole[]).map((r) => {
                 const labels: Record<UserRole, string> = {
-                  buyer: 'Pembeli',
-                  seller: 'Penjual',
-                  both: 'Keduanya',
+                  buyer: 'Buyer',
+                  seller: 'Seller',
+                  both: 'Both',
                 };
                 return (
                   <button
@@ -140,7 +140,7 @@ export default function RegisterPage() {
             className="w-full mt-2"
             disabled={loading}
           >
-            {loading ? 'Memproses...' : 'Buat Akun'}
+            {loading ? 'Registering...' : 'Register Now'}
           </Button>
         </form>
       </div>

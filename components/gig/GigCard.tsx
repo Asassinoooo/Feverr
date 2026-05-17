@@ -46,7 +46,7 @@ export function GigCard({ gig, seller }: GigCardProps) {
           </div>
           {/* Price */}
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Mulai dari</span>
+            <span className="text-xs text-slate-400">Starting from</span>
             <span className="text-sm font-semibold text-slate-800">
               {formatCurrency(gig.price)}
             </span>

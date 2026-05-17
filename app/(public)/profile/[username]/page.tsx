@@ -69,18 +69,22 @@ export default async function ProfilePage({ params }: Props) {
           <h1 className="text-2xl font-bold text-slate-800">{user.name}</h1>
           <p className="text-slate-400 text-sm mb-2">@{user.username}</p>
           <p className="text-slate-600 text-sm max-w-lg mb-4">{user.bio}</p>
-          <div className="flex flex-wrap gap-6 text-sm text-slate-500">
-            <div>
-              <span className="font-semibold text-slate-700">{gigs.length}</span> jasa aktif
+          <div className="flex flex-col gap-2 mt-4 text-sm text-slate-500">
+            <div className="flex items-center gap-2">
+              <span>📅</span>
+              <span>Registered {formatDate(user.createdAt)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>💼</span>
+              <span>0 active orders</span>
             </div>
             {reviews.length > 0 && (
               <div className="flex items-center gap-1">
                 <StarRating rating={avgRating} size="sm" />
                 <span className="font-semibold text-slate-700">{avgRating.toFixed(1)}</span>
-                <span>({reviews.length} ulasan)</span>
+                <span>({reviews.length} reviews)</span>
               </div>
             )}
-            <div>Bergabung {formatDate(user.createdAt)}</div>
           </div>
         </div>
       </div>
@@ -88,7 +92,7 @@ export default async function ProfilePage({ params }: Props) {
       {/* Gigs */}
       {gigs.length > 0 && (
         <div className="mb-10">
-          <h2 className="text-base font-semibold text-slate-800 mb-5">Jasa Ditawarkan</h2>
+          <h2 className="text-base font-semibold text-slate-800 mb-5">Offered Services</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {gigs.map((gig: any) => (
               <GigCard key={gig.id} gig={gig} seller={user as any} />
@@ -101,7 +105,7 @@ export default async function ProfilePage({ params }: Props) {
       {reviews.length > 0 && (
         <div>
           <h2 className="text-base font-semibold text-slate-800 mb-5">
-            Ulasan Diterima ({reviews.length})
+            Reviews Received ({reviews.length})
           </h2>
           <div className="flex flex-col gap-5">
             {reviews.map((review: any) => (
@@ -121,7 +125,7 @@ export default async function ProfilePage({ params }: Props) {
       )}
 
       {gigs.length === 0 && (
-        <p className="text-slate-400 text-sm">Pengguna ini belum menawarkan jasa.</p>
+        <p className="text-sm text-slate-400 py-8">This seller does not have any gigs yet.</p>
       )}
     </div>
   );

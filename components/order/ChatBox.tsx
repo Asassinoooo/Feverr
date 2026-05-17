@@ -25,15 +25,15 @@ export function ChatBox({ messages, currentUserId, onSend }: ChatBoxProps) {
   return (
     <div className="border border-slate-200 flex flex-col">
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-        <h3 className="text-sm font-medium text-slate-700">Percakapan</h3>
+        <h3 className="text-sm font-medium text-slate-700">Conversation</h3>
       </div>
       <div className="flex-1 p-4 flex flex-col gap-4 max-h-96 overflow-y-auto">
         {messages.length === 0 && (
-          <p className="text-sm text-slate-400 text-center py-4">Belum ada pesan.</p>
+          <p className="text-sm text-slate-400 text-center py-4">No messages yet.</p>
         )}
         {messages.map((msg) => {
           const isMe = msg.senderId === currentUserId;
-          const senderName = msg.sender_name || (isMe ? 'Saya' : 'User');
+          const senderName = msg.sender_name || (isMe ? 'Me' : 'User');
           const senderAvatar = msg.sender_avatar;
 
           return (
@@ -64,11 +64,11 @@ export function ChatBox({ messages, currentUserId, onSend }: ChatBoxProps) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Tulis pesan..."
+          placeholder="Write a message..."
           className="flex-1 border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b5fa0]"
         />
         <Button type="submit" size="sm">
-          Kirim
+          Send
         </Button>
       </form>
     </div>
