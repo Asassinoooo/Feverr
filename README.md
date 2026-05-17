@@ -308,5 +308,8 @@ npm start
 3.  **Redis Fallback**: Sistem caching pencarian dirancang secara *fail-safe*. Jika koneksi Redis gagal atau `REDIS_URL` tidak didefinisikan, pencarian akan tetap berfungsi normal dengan langsung mengambil data dari PostgreSQL.
 
 ---
+## Progress Checking Dokumentasi
+<img width="1220" height="5371" alt="image" src="https://github.com/user-attachments/assets/166ce175-be04-4ff0-8cc3-7eacbc14c651" />
+
 
 *Dikembangkan dengan penuh dedikasi untuk portofolio freelance premium modern Indonesia.* 🇮🇩
