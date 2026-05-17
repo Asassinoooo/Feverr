@@ -19,8 +19,8 @@ Feverr adalah platform marketplace penyedia jasa freelance (seperti Fiverr) prem
 Platform Feverr mendukung transaksi keuangan menggunakan Rupiah (IDR) dan mata uang kripto/eksternal JigsawCoin (JGC).
 *   **Kurs Tetap**: 1 JGC = Rp1.000 (dan sebaliknya).
 *   **Konversi Dua Arah (Bidirectional)**:
-    *   **JGC → IDR**: Tukarkan JigsawCoin Anda ke saldo Rupiah Feverr untuk memesan jasa.
-    *   **IDR → JGC**: Tukarkan kembali sisa saldo Rupiah Anda menjadi JigsawCoin untuk ditarik keluar.
+    *   **JGC $\rightarrow$ IDR**: Tukarkan JigsawCoin Anda ke saldo Rupiah Feverr untuk memesan jasa.
+    *   **IDR $\rightarrow$ JGC**: Tukarkan kembali sisa saldo Rupiah Anda menjadi JigsawCoin untuk ditarik keluar.
 *   **Server-Side Proxy API**: Seluruh komunikasi dengan API JigsawCoin dilindungi di sisi server (`app/api/wallet/...`) guna menyembunyikan API Key dari client-side dan menghindari kendala CORS.
 
 ### 4. Transaksi & Alur Pemesanan (Order Flow & Ledgers)
@@ -33,93 +33,171 @@ Platform Feverr mendukung transaksi keuangan menggunakan Rupiah (IDR) dan mata u
 
 ---
 
-## 🗄️ Skema Database (PostgreSQL)
+## 📊 Diagram & Model Arsitektur
 
-Berikut adalah struktur tabel yang digunakan dalam PostgreSQL (Neon Serverless DB):
-
+### 1. Entity Relationship Diagram (ERD)
+Struktur tabel yang digunakan dalam PostgreSQL database:
 ```mermaid
 erDiagram
-    USERS ||--o{ GIGS : "has"
-    USERS ||--o{ ORDERS : "buys/sells"
-    USERS ||--o{ REVIEWS : "writes/receives"
-    USERS ||--o{ TRANSACTIONS : "performs"
-    USERS ||--o{ MESSAGES : "sends"
-    GIGS ||--o{ ORDERS : "ordered"
-    ORDERS ||--|| REVIEWS : "reviewed"
-    ORDERS ||--o{ MESSAGES : "contains"
+    Users ||--o{ Gigs : "creates"
+    Users ||--o{ Orders : "places (buyer)"
+    Gigs ||--o{ Orders : "is ordered"
+    Orders ||--|| Reviews : "has"
+    Users ||--o{ Reviews : "writes (reviewer)"
+    Users ||--o{ Reviews : "receives (seller)"
+    Orders ||--o{ Messages : "contains"
+    Users ||--o{ Messages : "sends"
+    Users ||--o{ Transactions : "performs"
 
-    USERS {
-        int user_id PK
-        varchar username UNIQUE
-        varchar email UNIQUE
-        varchar password_hash
-        varchar name
-        text bio
-        text avatar_url
-        user_role_enum role
+    Users {
+        uuid user_id PK
+        string username
+        string email
         decimal balance
         decimal average_rating
-        varchar global_user_id
+        text bio
+        string avatar_url
         timestamp created_at
     }
 
-    GIGS {
-        int gig_id PK
-        int seller_id FK
-        varchar title
+    Gigs {
+        uuid gig_id PK
+        uuid seller_id FK
+        string title
         text description
-        varchar category
-        text_array tags
         decimal price
-        int delivery_days
-        text_array portfolio_images
+        string category_id
         boolean is_active
-        decimal average_rating
-        int review_count
         timestamp created_at
     }
 
-    ORDERS {
-        int order_id PK
-        int buyer_id FK
-        int gig_id FK
-        int seller_id FK
-        order_status_enum status
-        text buyer_instructions
-        text_array delivery_files
+    Orders {
+        uuid order_id PK
+        uuid buyer_id FK
+        uuid gig_id FK
+        enum status
         decimal total_price
+        text instructions
         timestamp created_at
-        timestamp updated_at
     }
 
-    REVIEWS {
-        int review_id PK
-        int order_id FK UNIQUE
-        int gig_id FK
-        int buyer_id FK
-        int seller_id FK
+    Reviews {
+        uuid review_id PK
+        uuid order_id FK
+        uuid reviewer_id FK
+        uuid seller_id FK
         int rating
         text comment
         timestamp created_at
     }
 
-    TRANSACTIONS {
-        int transaction_id PK
-        int user_id FK
-        transaction_type_enum type
-        decimal amount
-        text description
-        int related_order_id FK
-        timestamp created_at
-    }
-
-    MESSAGES {
-        int message_id PK
-        int order_id FK
-        int sender_id FK
+    Messages {
+        uuid message_id PK
+        uuid order_id FK
+        uuid sender_id FK
         text content
         timestamp created_at
     }
+
+    Transactions {
+        uuid transaction_id PK
+        uuid user_id FK
+        enum type
+        decimal amount
+        string description
+        uuid related_order_id FK
+        timestamp created_at
+    }
+```
+
+### 2. User Journey Flowchart
+Alur perjalanan pengguna bertransaksi di Feverr:
+```mermaid
+graph TD
+    Start([User Landing]) --> Search[Search Gigs]
+    Search --> Select[Select Gig]
+    Select --> Checkout[Checkout/Payment]
+    Checkout --> CreateOrder[Order Created]
+    CreateOrder --> SetInstructions[Buyer Provides Instructions]
+    SetInstructions --> InProgress[Seller: In Progress]
+    InProgress --> Chat[Buyer & Seller Chat]
+    Chat --> Delivery[Seller: Deliver Project]
+    Delivery --> Review[Buyer: Review & Complete]
+    Review --> End([Order Finished])
+
+    subgraph Wallet
+        Deposit[Deposit Jigsawcoin] --> Balance[Check Balance]
+        Balance --> Withdraw[Withdraw]
+    end
+
+    subgraph SellerManagement
+        CreateGig[Create New Gig] --> ManageGig[Manage/Edit Gigs]
+        ManageGig --> Dashboard[Seller Dashboard]
+    end
+```
+
+### 3. UML Class Diagram
+Representasi relasi orientasi objek di sisi backend Feverr:
+```mermaid
+classDiagram
+    class User {
+        +UUID user_id
+        +String username
+        +String email
+        +Decimal balance
+        +Decimal average_rating
+        +Text bio
+        +String avatar_url
+    }
+
+    class Gig {
+        +UUID gig_id
+        +UUID seller_id
+        +String title
+        +Text description
+        +Decimal price
+        +String category
+        +Boolean is_active
+    }
+
+    class Order {
+        +UUID order_id
+        +UUID buyer_id
+        +UUID gig_id
+        +OrderStatus status
+        +Decimal total_price
+        +String instructions
+    }
+
+    class Review {
+        +UUID review_id
+        +UUID order_id
+        +UUID reviewer_id
+        +UUID seller_id
+        +Int rating
+        +Text comment
+    }
+
+    class Message {
+        +UUID message_id
+        +UUID order_id
+        +UUID sender_id
+        +Text content
+    }
+
+    class Transaction {
+        +UUID transaction_id
+        +UUID user_id
+        +TransactionType type
+        +Decimal amount
+    }
+
+    User "1" -- "0..*" Gig : sells
+    User "1" -- "0..*" Order : buys
+    Gig "1" -- "0..*" Order : part of
+    Order "1" -- "0..1" Review : results in
+    Order "1" -- "0..*" Message : contains
+    User "1" -- "0..*" Transaction : participates in
 ```
 
 ---
