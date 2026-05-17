@@ -7,9 +7,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchGig } from '@/lib/api';
 
 const navItems = [
-  { href: '/seller/gigs', label: 'Gig Saya' },
-  { href: '/seller/orders', label: 'Pesanan Masuk' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/seller/gigs', label: 'My Gigs' },
+  { href: '/seller/orders', label: 'Incoming Orders' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function EditGigPage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,11 +38,11 @@ export default function EditGigPage({ params }: { params: Promise<{ id: string }
     loadGig();
   }, [id]);
 
-  if (loading) return <div className="p-8 text-slate-400">Memuat...</div>;
+  if (loading) return <div className="p-8 text-slate-400">Loading...</div>;
   if (!gig) notFound();
 
   return (
-    <DashboardLayout title="Penjual" navItems={navItems}>
+    <DashboardLayout title="Seller" navItems={navItems}>
       <h1 className="text-xl font-bold text-slate-800 mb-6">Edit Gig</h1>
       <GigForm existingGig={gig} />
     </DashboardLayout>

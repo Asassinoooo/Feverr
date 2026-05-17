@@ -11,9 +11,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchOrders } from '@/lib/api';
 
 const navItems = [
-  { href: '/dashboard/orders', label: 'Pesanan Saya' },
-  { href: '/settings/profile', label: 'Pengaturan Profil' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/dashboard/orders', label: 'My Orders' },
+  { href: '/settings/profile', label: 'Profile Settings' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function BuyerOrdersPage() {
@@ -50,9 +50,9 @@ export default function BuyerOrdersPage() {
   );
 
   function OrderList({ list }: { list: any[] }) {
-    if (loading) return <p className="text-sm text-slate-400 py-8 text-center">Memuat...</p>;
+    if (loading) return <p className="text-sm text-slate-400 py-8 text-center">Loading...</p>;
     if (list.length === 0) {
-      return <p className="text-sm text-slate-400 py-8 text-center">Tidak ada pesanan.</p>;
+      return <p className="text-sm text-slate-400 py-8 text-center">No orders yet.</p>;
     }
     return (
       <div className="flex flex-col gap-3">
@@ -76,12 +76,12 @@ export default function BuyerOrdersPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-medium text-slate-800 truncate group-hover:text-[#3b5fa0]">
-                  {order.gig_title || 'Jasa Dihapus'}
+                  {order.gig_title || 'Service Removed'}
                 </h3>
                 <OrderStatusBadge status={order.status} />
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                oleh {order.seller?.name} · {formatDate(order.created_at)} · {formatCurrency(order.total_price)}
+                by {order.seller?.name} · {formatDate(order.created_at)} · {formatCurrency(order.total_price)}
               </p>
             </div>
           </Link>
@@ -91,12 +91,12 @@ export default function BuyerOrdersPage() {
   }
 
   return (
-    <DashboardLayout title="Pembeli" navItems={navItems}>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Pesanan Saya</h1>
+    <DashboardLayout title="Buyer" navItems={navItems}>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">My Orders</h1>
       <Tabs
         tabs={[
-          { id: 'active', label: `Aktif (${active.length})` },
-          { id: 'history', label: `Riwayat (${history.length})` },
+          { id: 'active', label: `Active (${active.length})` },
+          { id: 'history', label: `History (${history.length})` },
         ]}
       >
         {(tab) => tab === 'active' ? <OrderList list={active} /> : <OrderList list={history} />}

@@ -5,13 +5,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
 export const metadata: Metadata = {
-  title: 'Feverr — Marketplace Freelance Indonesia',
-  description: 'Temukan dan tawarkan jasa kreatif & digital terbaik di Indonesia.',
+  title: 'Feverr — Freelance Marketplace',
+  description: 'Find and offer the best creative & digital services.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

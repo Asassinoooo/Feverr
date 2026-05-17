@@ -12,9 +12,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchOrder, fetchMessages, sendMessage as apiSendMessage, updateOrderStatus as apiUpdateOrderStatus } from '@/lib/api';
 
 const navItems = [
-  { href: '/seller/gigs', label: 'Gig Saya' },
-  { href: '/seller/orders', label: 'Pesanan Masuk' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/seller/gigs', label: 'My Gigs' },
+  { href: '/seller/orders', label: 'Incoming Orders' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function SellerOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -80,14 +80,14 @@ export default function SellerOrderDetailPage({ params }: { params: Promise<{ id
     handleUpdateStatus('delivered', files);
   }
 
-  if (loading) return <div className="p-8 text-slate-400">Memuat...</div>;
+  if (loading) return <div className="p-8 text-slate-400">Loading...</div>;
   if (!order) notFound();
 
   return (
-    <DashboardLayout title="Penjual" navItems={navItems}>
+    <DashboardLayout title="Seller" navItems={navItems}>
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/seller/orders" className="text-sm text-[#3b5fa0] hover:underline">← Kembali</Link>
-        <h1 className="text-xl font-bold text-slate-800">Detail Pesanan</h1>
+        <Link href="/seller/orders" className="text-sm text-[#3b5fa0] hover:underline">← Back</Link>
+        <h1 className="text-xl font-bold text-slate-800">Order Details</h1>
       </div>
 
       {/* Order Info */}
@@ -95,8 +95,8 @@ export default function SellerOrderDetailPage({ params }: { params: Promise<{ id
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">{order.gig_title}</h3>
-            <p className="text-xs text-slate-400 mt-1">dari {order.buyer_name}</p>
-            <p className="text-xs text-slate-400">Dipesan: {formatDate(order.createdAt)}</p>
+            <p className="text-xs text-slate-400 mt-1">from {order.buyer_name}</p>
+            <p className="text-xs text-slate-400">Ordered: {formatDate(order.createdAt)}</p>
           </div>
           <div className="text-right">
             <div className="text-base font-bold text-slate-800">{formatCurrency(order.totalPrice)}</div>
@@ -105,7 +105,7 @@ export default function SellerOrderDetailPage({ params }: { params: Promise<{ id
         </div>
         {order.buyerInstructions && (
           <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-500 mb-1">Instruksi Pembeli:</p>
+            <p className="text-xs font-medium text-slate-500 mb-1">Buyer Instructions:</p>
             <p className="text-sm text-slate-600">{order.buyerInstructions}</p>
           </div>
         )}
@@ -113,16 +113,16 @@ export default function SellerOrderDetailPage({ params }: { params: Promise<{ id
 
       {/* Status Actions */}
       <div className="bg-white border border-slate-200 p-5 mb-6">
-        <h3 className="text-sm font-semibold text-slate-700 mb-4">Aksi Status</h3>
+        <h3 className="text-sm font-semibold text-slate-700 mb-4">Status Actions</h3>
         {order.status === 'pending' && (
           <Button variant="primary" onClick={() => handleUpdateStatus('in_progress')}>
-            Mulai Kerjakan
+            Start Work
           </Button>
         )}
         {order.status === 'in_progress' && (
           <div className="flex flex-col gap-3">
             <div>
-              <label className="text-sm text-slate-600 block mb-1.5">Nama File yang Diserahkan</label>
+              <label className="text-sm text-slate-600 block mb-1.5">Submitted File Name</label>
               <input
                 value={filename}
                 onChange={(e) => setFilename(e.target.value)}
@@ -131,22 +131,22 @@ export default function SellerOrderDetailPage({ params }: { params: Promise<{ id
               />
             </div>
             <Button variant="primary" onClick={handleDeliver}>
-              Tandai Terkirim
+              Mark as Delivered
             </Button>
           </div>
         )}
         {order.status === 'delivered' && (
           <div className="text-sm text-slate-500">
-            Menunggu konfirmasi dari pembeli.
+            Waiting for confirmation from buyer.
             {order.deliveryFiles.length > 0 && (
               <div className="mt-2">
-                File terkirim: {order.deliveryFiles.join(', ')}
+                Submitted files: {order.deliveryFiles.join(', ')}
               </div>
             )}
           </div>
         )}
         {order.status === 'completed' && (
-          <div className="text-sm text-green-600 font-medium">Pesanan selesai ✓</div>
+          <div className="text-sm text-green-600 font-medium">Order completed ✓</div>
         )}
       </div>
 

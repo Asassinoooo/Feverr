@@ -10,9 +10,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchOrders, updateOrderStatus as apiUpdateOrderStatus } from '@/lib/api';
 
 const navItems = [
-  { href: '/seller/gigs', label: 'Gig Saya' },
-  { href: '/seller/orders', label: 'Pesanan Masuk' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/seller/gigs', label: 'My Gigs' },
+  { href: '/seller/orders', label: 'Incoming Orders' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function SellerOrdersPage() {
@@ -54,13 +54,13 @@ export default function SellerOrdersPage() {
   }
 
   return (
-    <DashboardLayout title="Penjual" navItems={navItems}>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Pesanan Masuk</h1>
+    <DashboardLayout title="Seller" navItems={navItems}>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">Incoming Orders</h1>
 
       {loading ? (
-        <p className="text-slate-400 text-sm py-16 text-center">Memuat...</p>
+        <p className="text-slate-400 text-sm py-16 text-center">Loading...</p>
       ) : orders.length === 0 ? (
-        <p className="text-slate-400 text-sm py-16 text-center">Belum ada pesanan.</p>
+        <p className="text-slate-400 text-sm py-16 text-center">No orders yet.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {orders.map((order) => (
@@ -81,7 +81,7 @@ export default function SellerOrdersPage() {
                   <div className="min-w-0">
                     <h3 className="text-sm font-medium text-slate-800 truncate">{order.gigTitle}</h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      dari {order.buyerName} · {formatDate(order.createdAt)} · {formatCurrency(order.totalPrice)}
+                      from {order.buyerName} · {formatDate(order.createdAt)} · {formatCurrency(order.totalPrice)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -92,16 +92,16 @@ export default function SellerOrdersPage() {
                         variant="secondary"
                         onClick={() => handleUpdateStatus(order.id, 'in_progress')}
                       >
-                        Mulai Kerjakan
+                        Start Work
                       </Button>
                     )}
                     {order.status === 'in_progress' && (
                       <Link href={`/seller/orders/${order.id}`}>
-                        <Button size="sm" variant="primary">Kirim</Button>
+                        <Button size="sm" variant="primary">Deliver</Button>
                       </Link>
                     )}
                     <Link href={`/seller/orders/${order.id}`} className="text-xs text-[#3b5fa0] hover:underline">
-                      Detail
+                      Details
                     </Link>
                   </div>
                 </div>

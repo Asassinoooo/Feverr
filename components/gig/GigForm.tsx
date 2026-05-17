@@ -50,7 +50,7 @@ export function GigForm({ existingGig }: GigFormProps) {
       }));
     } catch (err) {
       console.error(err);
-      setErrors((prev) => ({ ...prev, images: 'Gagal mengunggah gambar' }));
+      setErrors((prev) => ({ ...prev, images: 'Failed to upload image' }));
     } finally {
       setUploading(false);
     }
@@ -58,10 +58,10 @@ export function GigForm({ existingGig }: GigFormProps) {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (!form.title.trim()) e.title = 'Judul wajib diisi';
-    if (!form.description.trim()) e.description = 'Deskripsi wajib diisi';
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Harga harus angka positif';
-    if (!form.deliveryDays || isNaN(Number(form.deliveryDays)) || Number(form.deliveryDays) <= 0) e.deliveryDays = 'Hari pengiriman harus angka positif';
+    if (!form.title.trim()) e.title = 'Title is required';
+    if (!form.description.trim()) e.description = 'Description is required';
+    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Price must be a positive number';
+    if (!form.deliveryDays || isNaN(Number(form.deliveryDays)) || Number(form.deliveryDays) <= 0) e.deliveryDays = 'Delivery days must be a positive number';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -105,7 +105,7 @@ export function GigForm({ existingGig }: GigFormProps) {
       router.refresh();
     } catch (err) {
       console.error('Error saving gig:', err);
-      setErrors({ global: 'Gagal menyimpan gig.' });
+      setErrors({ global: 'Failed to save gig.' });
     } finally {
       setLoading(false);
     }
@@ -114,32 +114,32 @@ export function GigForm({ existingGig }: GigFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 max-w-xl">
       <Input
-        label="Judul Gig"
+        label="Gig Title"
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
-        placeholder="Contoh: Desain Logo Profesional untuk Brand Anda"
+        placeholder="Example: Professional Logo Design for your Brand"
         error={errors.title}
       />
 
       <Select
-        label="Kategori"
+        label="Category"
         value={form.category}
         onChange={(e) => setForm({ ...form, category: e.target.value })}
         options={GIG_CATEGORIES.map((c) => ({ value: c, label: c }))}
       />
 
       <Textarea
-        label="Deskripsi"
+        label="Description"
         value={form.description}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
-        placeholder="Jelaskan jasa Anda secara detail..."
+        placeholder="Describe your services in detail..."
         rows={6}
         error={errors.description}
       />
 
       <div className="grid grid-cols-2 gap-4">
         <Input
-          label="Harga (Rp)"
+          label="Price (Rp)"
           type="number"
           value={form.price}
           onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -148,7 +148,7 @@ export function GigForm({ existingGig }: GigFormProps) {
           error={errors.price}
         />
         <Input
-          label="Hari Pengiriman"
+          label="Delivery Days"
           type="number"
           value={form.deliveryDays}
           onChange={(e) => setForm({ ...form, deliveryDays: e.target.value })}
@@ -159,14 +159,14 @@ export function GigForm({ existingGig }: GigFormProps) {
       </div>
 
       <Input
-        label="Tag (pisahkan dengan koma)"
+        label="Tags (separate with comma)"
         value={form.tags}
         onChange={(e) => setForm({ ...form, tags: e.target.value })}
-        placeholder="logo, branding, desain grafis"
+        placeholder="logo, branding, graphic design"
       />
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-slate-700">Gambar Portfolio</label>
+        <label className="text-sm font-medium text-slate-700">Portfolio Images</label>
         <div className="flex flex-wrap gap-2 mb-2">
           {form.portfolioImages.map((img, idx) => (
             <div key={idx} className="relative w-24 h-24 border border-slate-200 rounded overflow-hidden group">
@@ -182,7 +182,7 @@ export function GigForm({ existingGig }: GigFormProps) {
           ))}
           <label className="w-24 h-24 border-2 border-dashed border-slate-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-[#3b5fa0] hover:bg-slate-50 transition-colors">
             <span className="text-2xl text-slate-400">+</span>
-            <span className="text-xs text-slate-500">{uploading ? 'Uploading...' : 'Tambah'}</span>
+            <span className="text-xs text-slate-500">{uploading ? 'Uploading...' : 'Add'}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
           </label>
         </div>
@@ -198,7 +198,7 @@ export function GigForm({ existingGig }: GigFormProps) {
           className="accent-[#3b5fa0]"
         />
         <label htmlFor="isActive" className="text-sm text-slate-700">
-          Aktifkan gig ini
+          Activate this gig
         </label>
       </div>
 
@@ -206,10 +206,10 @@ export function GigForm({ existingGig }: GigFormProps) {
 
       <div className="flex gap-3 pt-2">
         <Button type="submit" variant="primary" disabled={loading}>
-          {loading ? 'Menyimpan...' : (existingGig ? 'Simpan Perubahan' : 'Buat Gig')}
+          {loading ? 'Saving...' : (existingGig ? 'Save Changes' : 'Create Gig')}
         </Button>
         <Button type="button" variant="secondary" onClick={() => router.back()} disabled={loading}>
-          Batal
+          Cancel
         </Button>
       </div>
     </form>

@@ -44,12 +44,12 @@ export default function SearchFilter({
       {/* Search */}
       <div className="mb-5">
         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-          Kata Kunci
+          Keywords
         </label>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari jasa..."
+          placeholder="Search services..."
           className="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3b5fa0]"
         />
       </div>
@@ -57,7 +57,7 @@ export default function SearchFilter({
       {/* Category */}
       <div className="mb-5">
         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-          Kategori
+          Category
         </label>
         <div className="flex flex-col gap-1.5">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -69,7 +69,7 @@ export default function SearchFilter({
               onChange={() => setCategory('')}
               className="accent-[#3b5fa0]"
             />
-            <span className="text-slate-600">Semua</span>
+            <span className="text-slate-600">All</span>
           </label>
           {GIG_CATEGORIES.map((cat) => (
             <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -90,7 +90,7 @@ export default function SearchFilter({
       {/* Price Range */}
       <div className="mb-5">
         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-          Harga Maks (Rp)
+          Max Price (Rp)
         </label>
         <input
           type="range"
@@ -102,14 +102,14 @@ export default function SearchFilter({
           className="w-full accent-[#3b5fa0]"
         />
         <div className="text-xs text-slate-500 mt-1">
-          s/d Rp {maxPrice.toLocaleString('id-ID')}
+          up to Rp {maxPrice.toLocaleString()}
         </div>
       </div>
 
       {/* Min Rating */}
       <div className="mb-5">
         <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-          Rating Minimum
+          Minimum Rating
         </label>
         <div className="flex flex-col gap-1.5">
           {[0, 3, 4, 4.5].map((r) => (
@@ -122,7 +122,7 @@ export default function SearchFilter({
                 className="accent-[#3b5fa0]"
               />
               <span className="text-slate-600">
-                {r === 0 ? 'Semua' : `≥ ${r} ★`}
+                {r === 0 ? 'All' : `≥ ${r} ★`}
               </span>
             </label>
           ))}
@@ -133,7 +133,7 @@ export default function SearchFilter({
         onClick={() => { setQuery(''); setCategory(''); setMaxPrice(5000000); setMinRating(0); }}
         className="text-xs text-[#3b5fa0] hover:underline"
       >
-        Reset filter
+        Reset filters
       </button>
     </aside>
   );

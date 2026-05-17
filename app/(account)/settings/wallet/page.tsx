@@ -8,9 +8,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchMe, fetchTransactions, topUp } from '@/lib/api';
 
 const navItems = [
-  { href: '/dashboard/orders', label: 'Pesanan Saya' },
-  { href: '/settings/profile', label: 'Pengaturan Profil' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/dashboard/orders', label: 'My Orders' },
+  { href: '/settings/profile', label: 'Profile Settings' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function WalletPage() {
@@ -73,14 +73,14 @@ export default function WalletPage() {
       });
       
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal melakukan swap');
+      if (!res.ok) throw new Error(data.error || 'Failed to perform swap');
       
       setSwapAmount('');
       await loadData();
       
       const message = swapDirection === 'jgc_to_idr' 
-        ? `Berhasil menukar ${data.swapped} JGC menjadi ${formatCurrency(data.received)}`
-        : `Berhasil menukar ${formatCurrency(data.swapped)} menjadi ${data.received} JGC`;
+        ? `Successfully swapped ${data.swapped} JGC to ${formatCurrency(data.received)}`
+        : `Successfully swapped ${formatCurrency(data.swapped)} to ${data.received} JGC`;
         
       alert(message);
     } catch (err: any) {
@@ -91,33 +91,33 @@ export default function WalletPage() {
   }
 
   return (
-    <DashboardLayout title="Akun" navItems={navItems}>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Dompet & Saldo</h1>
+    <DashboardLayout title="Account" navItems={navItems}>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">Wallet & Balance</h1>
 
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         {/* Rupiah Balance (Main) */}
         <div className="bg-white border border-slate-200 p-6 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-            Saldo Rupiah (Feverr)
+            Rupiah Balance (Feverr)
           </div>
           <div className="text-3xl font-bold text-slate-800 mb-4">
             {formatCurrency(rupiahBalance)}
           </div>
           <p className="text-xs text-slate-500 italic">
-            Saldo ini digunakan untuk semua transaksi jasa di Feverr.
+            This balance is used for all service transactions on Feverr.
           </p>
         </div>
 
         {/* JigsawCoin Balance */}
         <div className="bg-slate-50 border border-slate-200 p-6 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-[#3b5fa0] mb-2">
-            Saldo JigsawCoin (Eksternal)
+            JigsawCoin Balance (External)
           </div>
           <div className="text-3xl font-bold text-slate-800 mb-2">
             {jigsawBalance.toLocaleString()} JGC
           </div>
           <p className="text-xs text-slate-400">
-            JGC diperoleh dari layanan luar. Tukarkan ke Rupiah untuk belanja.
+            JGC is obtained from external services. Swap to Rupiah to shop.
           </p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function WalletPage() {
       <div className="bg-white border border-[#3b5fa0]/20 p-6 mb-8 max-w-xl border-l-4 border-l-[#3b5fa0]">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-            🔄 Tukar Saldo
+            🔄 Swap Balance
           </h2>
           <div className="flex bg-slate-100 p-1 rounded-md">
             <button
@@ -148,7 +148,7 @@ export default function WalletPage() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 block">
-                {swapDirection === 'jgc_to_idr' ? 'Jumlah JGC' : 'Jumlah Rupiah'}
+                {swapDirection === 'jgc_to_idr' ? 'JGC Amount' : 'Rupiah Amount'}
               </label>
               <input
                 type="number"
@@ -162,7 +162,7 @@ export default function WalletPage() {
             </div>
             <div className="flex-1">
               <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 block">
-                Estimasi Hasil
+                Estimated Received
               </label>
               <div className="w-full bg-slate-50 border border-slate-100 px-3 py-2 text-sm text-slate-500 font-medium">
                 {swapDirection === 'jgc_to_idr' 
@@ -181,23 +181,23 @@ export default function WalletPage() {
             disabled={swapping || !swapAmount}
             className="w-full"
           >
-            {swapping ? 'Memproses Swap...' : (
-              swapDirection === 'jgc_to_idr' ? 'Tukar ke Rupiah' : 'Tukar ke JigsawCoin'
+            {swapping ? 'Processing Swap...' : (
+              swapDirection === 'jgc_to_idr' ? 'Swap to Rupiah' : 'Swap to JigsawCoin'
             )}
           </Button>
           <p className="text-[10px] text-center text-slate-400 uppercase tracking-tight">
-            Kurs Tetap: 1 JigsawCoin = Rp1.000
+            Fixed Rate: 1 JigsawCoin = Rp1,000
           </p>
         </form>
       </div>
 
       {/* Transaction History */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Riwayat Transaksi Rupiah</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-4">Rupiah Transaction History</h2>
         {loading ? (
-          <p className="text-sm text-slate-400">Memuat...</p>
+          <p className="text-sm text-slate-400">Loading...</p>
         ) : transactions.length === 0 ? (
-          <p className="text-sm text-slate-400">Belum ada transaksi.</p>
+          <p className="text-sm text-slate-400">No transactions yet.</p>
         ) : (
           <div className="border border-slate-200 bg-white divide-y divide-slate-100">
             {transactions.map((txn) => (

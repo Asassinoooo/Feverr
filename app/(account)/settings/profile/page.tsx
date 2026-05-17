@@ -8,9 +8,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { fetchMe, updateProfile } from '@/lib/api';
 
 const navItems = [
-  { href: '/dashboard/orders', label: 'Pesanan Saya' },
-  { href: '/settings/profile', label: 'Pengaturan Profil' },
-  { href: '/settings/wallet', label: 'Dompet' },
+  { href: '/dashboard/orders', label: 'My Orders' },
+  { href: '/settings/profile', label: 'Profile Settings' },
+  { href: '/settings/wallet', label: 'Wallet' },
 ];
 
 export default function ProfileSettingsPage() {
@@ -56,25 +56,25 @@ export default function ProfileSettingsPage() {
     }
   }
 
-  if (loading) return <div className="p-8 text-slate-400">Memuat...</div>;
+  if (loading) return <div className="p-8 text-slate-400">Loading...</div>;
 
   return (
-    <DashboardLayout title="Akun" navItems={navItems}>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Pengaturan Profil</h1>
+    <DashboardLayout title="Account" navItems={navItems}>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">Profile Settings</h1>
 
       <div className="flex flex-col gap-6 max-w-lg">
         {/* Avatar Preview */}
         <div className="flex items-center gap-4">
           <Avatar src={form.avatarUrl || null} name={form.name || 'User'} size={64} />
           <div>
-            <p className="text-sm font-medium text-slate-700">Foto Profil</p>
-            <p className="text-xs text-slate-400">Masukkan URL gambar di bawah</p>
+            <p className="text-sm font-medium text-slate-700">Profile Photo</p>
+            <p className="text-xs text-slate-400">Enter image URL below</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
-            label="Nama Lengkap"
+            label="Full Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
@@ -83,11 +83,11 @@ export default function ProfileSettingsPage() {
             label="Bio"
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
-            placeholder="Ceritakan tentang diri Anda..."
+            placeholder="Tell us about yourself..."
             rows={3}
           />
           <Input
-            label="URL Avatar"
+            label="Avatar URL"
             type="url"
             value={form.avatarUrl}
             onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
@@ -96,12 +96,12 @@ export default function ProfileSettingsPage() {
 
           {saved && (
             <div className="bg-green-50 border border-green-200 p-3 text-sm text-green-700">
-              Profil berhasil disimpan!
+              Profile saved successfully!
             </div>
           )}
 
           <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? 'Menyimpan...' : 'Simpan Profil'}
+            {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </form>
       </div>

@@ -1,9 +1,9 @@
 export const GIG_CATEGORIES = [
-  'Desain',
-  'Penulisan',
-  'Teknologi',
+  'Design',
+  'Writing',
+  'Technology',
   'Marketing',
-  'Bisnis',
+  'Business',
   'Video'
 ] as const;
 

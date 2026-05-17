@@ -7,7 +7,7 @@ export function Footer() {
         <div>
           <div className="font-bold text-[#3b5fa0] mb-2">Feverr</div>
           <p className="text-sm text-slate-500 max-w-xs">
-            Marketplace freelance untuk menemukan dan menawarkan jasa kreatif dan digital terbaik di Indonesia.
+            A freelance marketplace to find and offer the best creative and digital services.
           </p>
         </div>
         <div className="flex gap-12 justify-end">
@@ -16,23 +16,23 @@ export function Footer() {
               Platform
             </h4>
             <ul className="flex flex-col gap-2 text-sm text-slate-600">
-              <li><Link href="/search" className="hover:text-slate-900">Jelajahi Jasa</Link></li>
-              <li><Link href="/seller/gigs/new" className="hover:text-slate-900">Jual Jasa</Link></li>
+              <li><Link href="/search" className="hover:text-slate-900">Explore Services</Link></li>
+              <li><Link href="/seller/gigs/new" className="hover:text-slate-900">Sell Services</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-              Akun
+              Account
             </h4>
             <ul className="flex flex-col gap-2 text-sm text-slate-600">
-              <li><Link href="/login" className="hover:text-slate-900">Masuk</Link></li>
-              <li><Link href="/register" className="hover:text-slate-900">Daftar</Link></li>
+              <li><Link href="/login" className="hover:text-slate-900">Sign In</Link></li>
+              <li><Link href="/register" className="hover:text-slate-900">Sign Up</Link></li>
             </ul>
           </div>
         </div>
       </div>
       <div className="border-t border-slate-100 text-center py-4 text-xs text-slate-400">
-        © 2026 Feverr. Dibuat untuk Praktikum SBD.
+        © 2026 Feverr. Created for Database Systems Lab.
       </div>
     </footer>
   );

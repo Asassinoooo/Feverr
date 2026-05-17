@@ -43,27 +43,27 @@ export default async function HomePage() {
             {/* Left */}
             <div>
               <p className="text-xs font-semibold text-[#3b5fa0] uppercase tracking-widest mb-4">
-                Marketplace Freelance Indonesia
+                Freelance Marketplace
               </p>
               <h1 className="text-4xl lg:text-5xl font-bold text-slate-800 leading-tight mb-6">
-                Temukan jasa yang tepat,{' '}
-                <span className="text-[#3b5fa0]">mulai hari ini.</span>
+                Find the right service,{' '}
+                <span className="text-[#3b5fa0]">starting today.</span>
               </h1>
               <p className="text-slate-500 text-lg mb-8 max-w-md">
-                Dari desain logo hingga pengembangan web — ribuan freelancer siap membantu Anda.
+                From logo design to web development — thousands of freelancers are ready to help you.
               </p>
               <form action="/search" method="GET" className="flex gap-0 max-w-md">
                 <input
                   name="q"
                   type="text"
-                  placeholder="Cari jasa desain, penulisan, web..."
+                  placeholder="Search logo design, writing, web development..."
                   className="flex-1 border border-slate-300 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#3b5fa0] focus:border-transparent"
                 />
                 <button
                   type="submit"
                   className="bg-[#3b5fa0] text-white px-5 py-2.5 text-sm font-medium hover:bg-[#2d4f8e]"
                 >
-                  Cari
+                  Search
                 </button>
               </form>
             </div>
@@ -72,17 +72,17 @@ export default async function HomePage() {
             <div className="hidden lg:flex flex-col gap-6 border-l border-slate-200 pl-12">
               <div>
                 <div className="text-4xl font-bold text-[#3b5fa0]">500+</div>
-                <div className="text-slate-500 text-sm mt-1">Freelancer aktif</div>
+                <div className="text-slate-500 text-sm mt-1">Active freelancers</div>
               </div>
               <div className="w-16 h-px bg-slate-200" />
               <div>
-                <div className="text-4xl font-bold text-[#3b5fa0]">2.400+</div>
-                <div className="text-slate-500 text-sm mt-1">Proyek diselesaikan</div>
+                <div className="text-4xl font-bold text-[#3b5fa0]">2,400+</div>
+                <div className="text-slate-500 text-sm mt-1">Projects completed</div>
               </div>
               <div className="w-16 h-px bg-slate-200" />
               <div>
                 <div className="text-4xl font-bold text-[#3b5fa0]">4.8</div>
-                <div className="text-slate-500 text-sm mt-1">Rating rata-rata platform</div>
+                <div className="text-slate-500 text-sm mt-1">Average platform rating</div>
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default async function HomePage() {
       <section className="bg-[#f1f5f9] border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            Kategori
+            Categories
           </h2>
           <div className="flex gap-3 overflow-x-auto pb-1">
             {GIG_CATEGORIES.map((cat) => (
@@ -112,9 +112,9 @@ export default async function HomePage() {
       {/* Featured Gigs */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="flex items-baseline justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Jasa Unggulan</h2>
+          <h2 className="text-xl font-bold text-slate-800">Featured Services</h2>
           <Link href="/search" className="text-sm text-[#3b5fa0] hover:underline">
-            Lihat semua →
+            View all →
           </Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -128,14 +128,14 @@ export default async function HomePage() {
       <section className="bg-[#3b5fa0] text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
-            <h3 className="text-xl font-bold mb-1">Punya keahlian? Mulai jual jasa Anda.</h3>
+            <h3 className="text-xl font-bold mb-1">Have skills? Start selling your services.</h3>
             <p className="text-blue-200 text-sm">
-              Bergabung dengan ribuan freelancer dan raih penghasilan dari rumah.
+              Join thousands of freelancers and earn income from home.
             </p>
           </div>
           <Link href="/register">
             <button className="bg-white text-[#3b5fa0] font-medium px-6 py-2.5 text-sm hover:bg-slate-100 flex-shrink-0">
-              Mulai Berjualan
+              Become a Seller
             </button>
           </Link>
         </div>

@@ -103,13 +103,13 @@ export default async function SearchPage({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-5">
             <p className="text-sm text-slate-500">
-              <span className="font-semibold text-slate-800">{filteredGigs.length}</span> jasa ditemukan
+              <span className="font-semibold text-slate-800">{filteredGigs.length}</span> services found
             </p>
           </div>
 
           {filteredGigs.length === 0 ? (
             <div className="py-16 text-center text-slate-400">
-              Tidak ada jasa yang sesuai dengan filter Anda.
+              No services match your filters.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

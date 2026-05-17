@@ -39,7 +39,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
         setBalance(Number(userData.balance));
       } catch (err) {
         console.error('Error loading checkout data:', err);
-        setError('Gagal memuat data checkout.');
+        setError('Your balance is insufficient to make this purchase.');
       } finally {
         setPageLoading(false);
       }
@@ -48,13 +48,13 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
   }, [gigId]);
 
   if (pageLoading) {
-    return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400">Memuat...</div>;
+    return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-slate-400">Loading...</div>;
   }
 
   if (error || !gig) {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center text-red-500">
-        {error || 'Gig tidak ditemukan.'}
+        {error || 'Gig not found.'}
       </div>
     );
   }
@@ -75,7 +75,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
       setDone(true);
       setTimeout(() => router.push('/dashboard/orders'), 1500);
     } catch (err: any) {
-      setError(err.message || 'Gagal membuat pesanan.');
+      setError(err.message || 'Failed to place order.');
     } finally {
       setLoading(false);
     }
@@ -85,20 +85,20 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center">
         <div className="text-4xl mb-4">✅</div>
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Pesanan Berhasil!</h2>
-        <p className="text-slate-500 text-sm">Mengarahkan ke halaman pesanan...</p>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Order placed successfully!</h2>
+        <p className="text-slate-500 text-sm">Redirecting to orders page...</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Konfirmasi Pesanan</h1>
+      <h1 className="text-xl font-bold text-slate-800 mb-6">Confirm Purchase</h1>
 
       <div className="grid sm:grid-cols-2 gap-6">
         {/* Order Summary */}
         <div className="bg-white border border-slate-200 p-5">
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Ringkasan</h2>
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Service Details</h2>
           {gig.portfolioImages[0] && (
             <div className="relative aspect-video bg-slate-100 mb-4">
               <Image
@@ -111,14 +111,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
             </div>
           )}
           <h3 className="text-sm font-medium text-slate-800 mb-1">{gig.title}</h3>
-          <p className="text-xs text-slate-400 mb-3">oleh {gig.seller_name}</p>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-500">Total</span>
-            <span className="font-bold text-slate-800">{formatCurrency(gig.price)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-slate-500">Pengiriman</span>
-            <span className="text-slate-600">{gig.deliveryDays} hari</span>
+          <div className="text-slate-500 text-xs mt-1">by {gig.seller_name}</div>
+          <div className="flex items-center justify-between text-sm mt-4">
+            <div className="text-right flex-shrink-0">
+              <div className="text-sm font-bold text-slate-800">{formatCurrency(gig.price)}</div>
+              <div className="text-xs text-slate-400 mt-1">{gig.deliveryDays} Days Delivery</div>
+            </div>
           </div>
         </div>
 
@@ -126,28 +124,32 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
         <div>
           <form onSubmit={handleOrder} className="flex flex-col gap-5">
             <div className="bg-white border border-slate-200 p-4">
-              <div className="text-xs text-slate-500 mb-1">Saldo Anda</div>
+              <div className="text-xs text-slate-500 mb-1">Your Wallet Balance</div>
               <div className={`text-xl font-bold ${canAfford ? 'text-slate-800' : 'text-red-600'}`}>
                 {formatCurrency(balance)}
               </div>
               {!canAfford && (
                 <p className="text-xs text-red-500 mt-1">
-                  Saldo tidak cukup. Silakan top up di{' '}
-                  <a href="/settings/wallet" className="underline">Dompet</a>.
+                  Insufficient balance. Please top up your {' '}
+                  <a href="/settings/wallet" className="underline">Wallet</a>.
                 </p>
               )}
             </div>
 
             <Textarea
-              label="Instruksi untuk Penjual"
+              label="Instructions for Seller"
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Jelaskan kebutuhan Anda secara detail..."
+              placeholder="Describe your detailed requirements, files to be submitted, format, etc..."
               rows={5}
               required
             />
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 p-3 text-sm text-red-600 rounded">
+                {error}
+              </div>
+            )}
 
             <Button
               type="submit"
@@ -156,7 +158,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ gigId: stri
               className="w-full"
               disabled={!canAfford || loading}
             >
-              {loading ? 'Memproses...' : 'Konfirmasi Pesanan'}
+              {loading ? 'Processing Transaction...' : 'Pay Now'}
             </Button>
           </form>
         </div>
