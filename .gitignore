@@ -41,3 +41,6 @@ CONTEXT.md
 dump.sql
 scripts/init-db.js
 scripts/seed-db.js
+presentation.tex
+.gitignore
+.gitignore
