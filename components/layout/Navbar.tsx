@@ -27,9 +27,9 @@ export function Navbar() {
           <Link href="/search" className="hover:text-slate-900">
             Jelajahi
           </Link>
-          <Link href="/seller/gigs" className="hover:text-slate-900">
+          <a href="/seller/gigs" className="hover:text-slate-900">
             Jual Jasa
-          </Link>
+          </a>
         </nav>
 
         {/* Auth Area */}
@@ -49,36 +49,36 @@ export function Navbar() {
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 shadow-md py-1 z-50">
-                  <Link
+                  <a
                     href="/dashboard/orders"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
                     Pesanan Saya
-                  </Link>
+                  </a>
                   {isSeller && (
-                    <Link
+                    <a
                       href="/seller/gigs"
                       className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                       onClick={() => setDropdownOpen(false)}
                     >
                       Gig Saya
-                    </Link>
+                    </a>
                   )}
-                  <Link
+                  <a
                     href="/settings/profile"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
                     Pengaturan
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/settings/wallet"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     onClick={() => setDropdownOpen(false)}
                   >
                     Dompet
-                  </Link>
+                  </a>
                   <hr className="my-1 border-slate-100" />
                   <button
                     onClick={() => {
@@ -130,22 +130,22 @@ export function Navbar() {
           <Link href="/search" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
             Jelajahi
           </Link>
-          <Link href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
+          <a href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
             Jual Jasa
-          </Link>
+          </a>
           {session ? (
             <>
-              <Link href="/dashboard/orders" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
+              <a href="/dashboard/orders" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
                 Pesanan Saya
-              </Link>
+              </a>
               {isSeller && (
-                <Link href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
+                <a href="/seller/gigs" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
                   Gig Saya
-                </Link>
+                </a>
               )}
-              <Link href="/settings/profile" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
+              <a href="/settings/profile" className="text-sm text-slate-700" onClick={() => setMobileOpen(false)}>
                 Pengaturan
-              </Link>
+              </a>
               <button
                 className="text-left text-sm text-red-600"
                 onClick={() => {
