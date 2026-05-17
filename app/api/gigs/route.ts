@@ -1,6 +1,7 @@
 import { query } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { redis } from '@/lib/redis';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -62,6 +63,12 @@ export async function POST(request: Request) {
        RETURNING *`,
       [session.user.id, title, description, category, price, deliveryDays, tags || [], portfolioImages || []]
     );
+
+    // Invalidasi cache Redis supaya gig baru langsung muncul di search
+    if (redis) {
+      await redis.del('gigs:all');
+      await redis.del(`gigs:category:${category}`);
+    }
 
     return NextResponse.json(res.rows[0], { status: 201 });
   } catch (error) {

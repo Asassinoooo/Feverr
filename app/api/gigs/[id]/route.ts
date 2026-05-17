@@ -1,6 +1,7 @@
 import { query } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { redis } from '@/lib/redis';
 
 export async function GET(
   request: Request,
@@ -58,6 +59,12 @@ export async function PUT(
       [title, description, category, price, deliveryDays, tags, portfolioImages, isActive, id]
     );
 
+    // Invalidasi cache Redis supaya perubahan langsung terlihat di search
+    if (redis) {
+      await redis.del('gigs:all');
+      await redis.del(`gigs:category:${res.rows[0].category}`);
+    }
+
     return NextResponse.json(res.rows[0]);
   } catch (error) {
     console.error('Error updating gig:', error);
@@ -77,7 +84,7 @@ export async function DELETE(
 
   try {
     // Check ownership
-    const checkRes = await query('SELECT seller_id FROM gigs WHERE gig_id = $1', [id]);
+    const checkRes = await query('SELECT seller_id, category FROM gigs WHERE gig_id = $1', [id]);
     if (checkRes.rows.length === 0) {
       return NextResponse.json({ error: 'Gig not found' }, { status: 404 });
     }
@@ -85,7 +92,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const gigCategory = checkRes.rows[0].category;
     await query('DELETE FROM gigs WHERE gig_id = $1', [id]);
+
+    // Invalidasi cache Redis supaya gig yang dihapus tidak muncul lagi di search
+    if (redis) {
+      await redis.del('gigs:all');
+      await redis.del(`gigs:category:${gigCategory}`);
+    }
+
     return NextResponse.json({ message: 'Gig deleted' });
   } catch (error) {
     console.error('Error deleting gig:', error);

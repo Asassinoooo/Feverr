@@ -19,10 +19,9 @@ export default async function SearchPage({
   const cacheKey = category ? `gigs:category:${category}` : 'gigs:all';
   let gigs = [];
 
-  const useRedis = process.env.REDIS_URL;
   let cachedData = null;
-  
-  if (useRedis) {
+
+  if (redis) {
     try {
       cachedData = await redis.get(cacheKey);
     } catch (e) {
@@ -34,15 +33,15 @@ export default async function SearchPage({
     gigs = JSON.parse(cachedData);
   } else {
     let sql = `
-      SELECT 
-        g.*, 
-        u.username, 
+      SELECT
+        g.*,
+        u.username,
         u.name as seller_name,
-        u.avatar_url, 
+        u.avatar_url,
         g.average_rating,
         g.review_count
-      FROM gigs g 
-      JOIN users u ON g.seller_id = u.user_id 
+      FROM gigs g
+      JOIN users u ON g.seller_id = u.user_id
       WHERE g.is_active = TRUE
     `;
     const values: any[] = [];
@@ -57,7 +56,7 @@ export default async function SearchPage({
     const { rows } = await pool.query(sql, values);
     gigs = rows;
 
-    if (useRedis) {
+    if (redis) {
       try {
         await redis.set(cacheKey, JSON.stringify(gigs), 'EX', 3600);
       } catch (e) {
@@ -123,4 +122,4 @@ export default async function SearchPage({
       </div>
     </div>
   );
-}
+}
