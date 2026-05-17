@@ -40,3 +40,6 @@ CONTEXT.md
 .gitignore
 scripts/init-db.js
 scripts/seed-db.js
+presentation.tex
+.gitignore
+.gitignore
